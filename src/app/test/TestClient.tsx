@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Award, Clock, BookOpen, Calculator, Cpu, FlaskConical, AlertTriangle, ShieldCheck, Loader2, FileQuestion } from 'lucide-react';
 import NextLink from 'next/link';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
@@ -294,8 +294,8 @@ export default function TestClient() {
           <div className="flex justify-between items-center flex-wrap gap-4">
             <h2 className="text-xl font-semibold font-headline">Question {currentQuestionIndex + 1} of {questions.length}</h2>
             <div className="flex items-center gap-x-4">
-              <Sheet open={isNavigatorOpen} onOpenChange={setIsNavigatorOpen}>
-                  <SheetTrigger asChild>
+              <Dialog open={isNavigatorOpen} onOpenChange={setIsNavigatorOpen}>
+                  <DialogTrigger asChild>
                       <Button variant="outline" className="relative">
                           <FileQuestion className="mr-2 h-4 w-4" />
                           <span>Question List</span>
@@ -305,22 +305,24 @@ export default function TestClient() {
                               </span>
                           )}
                       </Button>
-                  </SheetTrigger>
-                  <SheetContent side="right" className="w-[350px] sm:w-[400px] p-0">
-                      <SheetHeader className="p-4 border-b">
-                          <SheetTitle>Question Navigator</SheetTitle>
-                          <SheetDescription>{unansweredQuestionsCount} questions unanswered.</SheetDescription>
-                      </SheetHeader>
-                      <ScrollArea className="h-[calc(100%-6rem)]">
+                  </DialogTrigger>
+                  <DialogContent className="p-0 max-w-md">
+                      <DialogHeader className="p-4 border-b text-left">
+                          <DialogTitle>Question Navigator</DialogTitle>
+                          <DialogDescription>{unansweredQuestionsCount} questions unanswered.</DialogDescription>
+                      </DialogHeader>
+                      <ScrollArea className="h-[60vh]">
                           <div className="flex flex-col gap-1 p-4">
                               {questions.map((q, index) => {
                                   const isAnswered = userAnswers[q.id] !== undefined;
+                                  const isCurrent = index === currentQuestionIndex;
                                   return (
                                       <Button
                                           key={q.id}
-                                          variant={index === currentQuestionIndex ? 'default' : 'ghost'}
+                                          variant={isCurrent ? 'secondary' : 'ghost'}
                                           className={cn(
-                                              'justify-start w-full text-left h-auto py-2 px-3',
+                                              'justify-start w-full text-left h-auto py-2 px-3 whitespace-normal',
+                                               isAnswered && !isCurrent && 'bg-green-100 dark:bg-green-900/50 hover:bg-green-200 dark:hover:bg-green-900'
                                           )}
                                           onClick={() => {
                                               setCurrentQuestionIndex(index);
@@ -329,19 +331,18 @@ export default function TestClient() {
                                       >
                                           <div className={cn(
                                               "flex h-6 w-6 items-center justify-center rounded-full mr-3 shrink-0 text-sm",
-                                              isAnswered ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200' : 'bg-muted',
-                                              index === currentQuestionIndex && 'bg-primary-foreground text-primary'
+                                              isCurrent ? 'bg-primary text-primary-foreground' : (isAnswered ? 'bg-green-600 text-white' : 'bg-muted')
                                           )}>
                                               {index + 1}
                                           </div>
-                                          <span className={cn('flex-1 truncate', !isAnswered && "text-muted-foreground")}>{q.question}</span>
+                                          <span className={cn('flex-1', !isAnswered && !isCurrent && "text-muted-foreground")}>{q.question}</span>
                                       </Button>
                                   );
                               })}
                           </div>
                       </ScrollArea>
-                  </SheetContent>
-              </Sheet>
+                  </DialogContent>
+              </Dialog>
 
               <div className="flex items-center gap-2 bg-muted px-3 py-1 rounded-full">
                 {renderSubjectIcon(currentQuestion.subject)}
