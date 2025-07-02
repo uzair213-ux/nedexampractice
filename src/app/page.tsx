@@ -1,9 +1,21 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, UserCog, GraduationCap, ClipboardEdit } from 'lucide-react';
 import NextLink from 'next/link';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
+  const [isClient, setIsClient] = useState(false);
+  const [admitCardVisible, setAdmitCardVisible] = useState(false);
+
+  useEffect(() => {
+    const storedValue = localStorage.getItem('admitCardVisible');
+    setAdmitCardVisible(storedValue !== 'false');
+    setIsClient(true);
+  }, []);
+
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background flex flex-col items-center justify-center p-4">
       <div className="text-center mb-12">
@@ -16,8 +28,8 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full">
-        <Card className="hover:shadow-lg transition-shadow">
+      <div className="flex flex-wrap items-stretch justify-center gap-8 max-w-6xl w-full">
+        <Card className="hover:shadow-lg transition-shadow w-full md:w-auto md:flex-1 md:max-w-md">
           <CardHeader>
             <div className="flex items-center gap-4">
               <div className="bg-primary/10 p-3 rounded-full">
@@ -41,7 +53,8 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        {isClient && admitCardVisible && (
+          <Card className="hover:shadow-lg transition-shadow w-full md:w-auto md:flex-1 md:max-w-md">
             <CardHeader>
                 <div className="flex items-center gap-4">
                     <div className="bg-green-500/10 p-3 rounded-full">
@@ -63,9 +76,10 @@ export default function Home() {
                     </Button>
                 </NextLink>
             </CardContent>
-        </Card>
+          </Card>
+        )}
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-shadow w-full md:w-auto md:flex-1 md:max-w-md">
           <CardHeader>
             <div className="flex items-center gap-4">
                <div className="bg-accent/10 p-3 rounded-full">
