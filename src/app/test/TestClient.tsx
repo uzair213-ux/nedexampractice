@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -9,15 +10,18 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Award, Clock, BookOpen, Calculator, Cpu, FlaskConical, AlertTriangle, ShieldCheck, Loader2, FileQuestion } from 'lucide-react';
+import { Award, Clock, BookOpen, Calculator, Cpu, FlaskConical, AlertTriangle, ShieldCheck, Loader2, FileQuestion, ArrowLeft, XCircle, CheckCircle, Lightbulb } from 'lucide-react';
 import NextLink from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
 import { saveScore } from '@/ai/flows/save-score';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type TestState = 'not-started' | 'in-progress' | 'finished';
+type ResultView = 'score' | 'review';
 
 const sortQuestionsBySubject = (questions: Question[]): Question[] => {
   const subjectOrder = ['English', 'Math', 'Physics', 'Computer'];
@@ -40,6 +44,9 @@ export default function TestClient() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
   const [score, setScore] = useState(0);
+  const [incorrectAnswers, setIncorrectAnswers] = useState<Question[]>([]);
+  const [resultView, setResultView] = useState<ResultView>('score');
+
   const [isCheating, setIsCheating] = useState(false);
   const [warningMessage, setWarningMessage] = useState('');
   const [timeLeft, setTimeLeft] = useState(2 * 60 * 60); // 2 hours in seconds
@@ -57,14 +64,11 @@ export default function TestClient() {
       if (customQuestionsRaw) {
         const customQuestions = JSON.parse(customQuestionsRaw);
         if (Array.isArray(customQuestions) && customQuestions.length > 0) {
-          // Use custom questions as they are (already ordered and shuffled)
           finalQuestions = customQuestions;
         } else {
-          // Fallback to default questions if custom questions are invalid
           finalQuestions = sortQuestionsBySubject(fallbackQuestions);
         }
       } else {
-        // Fallback to default questions if none are in session storage
         finalQuestions = sortQuestionsBySubject(fallbackQuestions);
       }
     } catch (error) {
@@ -85,20 +89,25 @@ export default function TestClient() {
   const handleSubmit = useCallback(async () => {
     if (questions.length === 0) return;
     let calculatedScore = 0;
+    const incorrect: Question[] = [];
+
     questions.forEach((q) => {
       if (userAnswersRef.current[q.id]?.toLowerCase() === q.answer.toLowerCase()) {
         calculatedScore++;
+      } else {
+        incorrect.push(q);
       }
     });
 
     setScore(calculatedScore);
+    setIncorrectAnswers(incorrect);
     setTestState('finished');
+    setResultView('score');
     
     if(document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     }
 
-    // After showing the result, save the score in the background.
     setIsSaving(true);
     try {
       const result = await saveScore({
@@ -106,7 +115,6 @@ export default function TestClient() {
         score: calculatedScore,
         total: questions.length,
       });
-      // Show an error toast only if saving fails for a reason other than not being configured.
       if (result && !result.success && result.message !== 'NOT_CONFIGURED') {
          toast({
             variant: "destructive",
@@ -129,7 +137,6 @@ export default function TestClient() {
   useEffect(() => {
     if (testState !== 'in-progress') return;
 
-    // Timer logic
     if (timeLeft <= 0) {
       handleSubmit();
       return;
@@ -138,7 +145,6 @@ export default function TestClient() {
       setTimeLeft((prevTime) => prevTime - 1);
     }, 1000);
 
-    // Anti-cheating logic
     const handleCheating = (message: string) => {
       setWarningMessage(message);
       setIsCheating(true);
@@ -200,7 +206,7 @@ export default function TestClient() {
 
   const handlePrev = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex((prev) => prev + 1);
+      setCurrentQuestionIndex((prev) => prev - 1);
     }
   };
 
@@ -297,6 +303,68 @@ export default function TestClient() {
   }
 
   if (testState === 'finished') {
+    if (resultView === 'review') {
+      return (
+        <div className="container mx-auto py-10">
+          <Card className="w-full max-w-4xl mx-auto shadow-2xl">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <Button variant="outline" onClick={() => setResultView('score')}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Score
+                </Button>
+                <div className="text-center">
+                  <CardTitle className="text-3xl font-headline">Review Your Answers</CardTitle>
+                  <CardDescription>Here are the {incorrectAnswers.length} questions you answered incorrectly.</CardDescription>
+                </div>
+                <div className='w-32'></div> {/* Spacer */}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Accordion type="multiple" className="w-full space-y-4">
+                {incorrectAnswers.map((q, index) => (
+                  <AccordionItem value={`q-${index}`} key={q.id} className="border-b-0">
+                     <AccordionTrigger className="p-4 border rounded-lg hover:bg-muted/50 text-left hover:no-underline [&[data-state=open]]:bg-muted/80">
+                      <span className="mr-4 font-bold">{index + 1}.</span>
+                      <span className="flex-1" dangerouslySetInnerHTML={{ __html: q.question }} />
+                    </AccordionTrigger>
+                    <AccordionContent className="p-4 border border-t-0 rounded-b-lg">
+                       <div className="space-y-4">
+                          <div className="flex items-start gap-3 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
+                              <XCircle className="h-5 w-5 shrink-0 text-destructive mt-0.5" />
+                              <div>
+                                  <p className="font-semibold text-destructive">Aapka Jawab: {userAnswers[q.id]?.toUpperCase() || 'Not Answered'}</p>
+                                  {userAnswers[q.id] && q.options[userAnswers[q.id].toUpperCase()] && <p className="text-destructive/80" dangerouslySetInnerHTML={{ __html: q.options[userAnswers[q.id].toUpperCase()] }} />}
+                              </div>
+                          </div>
+                          <div className="flex items-start gap-3 rounded-md border border-primary/50 bg-primary/10 p-3 text-sm">
+                              <CheckCircle className="h-5 w-5 shrink-0 text-primary mt-0.5" />
+                              <div>
+                                  <p className="font-semibold text-primary">Sahi Jawab: {q.answer.toUpperCase()}</p>
+                                  <p className="text-primary/80" dangerouslySetInnerHTML={{ __html: q.options[q.answer.toUpperCase()] }} />
+                              </div>
+                          </div>
+                          <div className="flex items-start gap-3 rounded-md border bg-muted/50 p-3 text-sm">
+                              <Lightbulb className="h-5 w-5 shrink-0 text-amber-500 mt-0.5" />
+                              <div>
+                                  <h4 className="font-semibold text-foreground">Wazahat (Explanation)</h4>
+                                  <p
+                                    className="text-muted-foreground"
+                                    dangerouslySetInnerHTML={{ __html: q.explanation || 'Wazahat mojood nahi hai.' }}
+                                  />
+                              </div>
+                          </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-background p-4">
         <Card className="w-full max-w-lg text-center shadow-2xl">
@@ -305,26 +373,43 @@ export default function TestClient() {
             <CardTitle className="text-3xl font-headline">Well done, {studentName}!</CardTitle>
             <CardDescription>Here is your test result.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-5xl font-bold text-primary">{score} / {questions.length}</p>
-            <p className="text-muted-foreground mt-2">Correct Answers</p>
-            <div className="mt-6">
-              <Progress value={questions.length > 0 ? (score / questions.length) * 100 : 0} className="h-4" />
+          <CardContent className="space-y-6">
+            <div>
+              <p className="text-5xl font-bold text-primary">{score} / {questions.length}</p>
+              <p className="text-muted-foreground mt-2">Correct Answers</p>
             </div>
-             {isSaving && (
-                <div className="flex items-center justify-center mt-4 text-muted-foreground">
+            
+            <Progress value={questions.length > 0 ? (score / questions.length) * 100 : 0} className="h-4" />
+            
+            {incorrectAnswers.length > 0 && (
+                <Alert className="text-left">
+                    <FileQuestion className="h-4 w-4" />
+                    <AlertTitle>Review your answers</AlertTitle>
+                    <AlertDescription>
+                        You got {incorrectAnswers.length} question{incorrectAnswers.length > 1 ? 's' : ''} wrong. Click the button below to see the correct solutions.
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {isSaving && (
+                <div className="flex items-center justify-center text-muted-foreground pt-4">
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     <p>Saving your score to the sheet...</p>
                 </div>
             )}
           </CardContent>
-           <CardFooter className="flex-col gap-4">
-            <Button size="lg" className="w-full" onClick={() => window.location.reload()}>
-              Retake Test
-            </Button>
-            <Button size="lg" variant="outline" className="w-full" onClick={() => window.location.href = '/'}>
-              Back to Home
-            </Button>
+           <CardFooter className="flex-col gap-4 pt-4">
+              {incorrectAnswers.length > 0 && (
+                 <Button variant="secondary" className="w-full" onClick={() => setResultView('review')}>
+                  Review Incorrect Answers
+                </Button>
+              )}
+              <Button size="lg" className="w-full" onClick={() => window.location.reload()}>
+                Retake Test
+              </Button>
+              <Button size="lg" variant="outline" className="w-full" onClick={() => window.location.href = '/'}>
+                Back to Home
+              </Button>
           </CardFooter>
         </Card>
       </div>
@@ -332,7 +417,7 @@ export default function TestClient() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-background p-4 md:p-8" onContextMenu={(e) => e.preventDefault()} style={{ userSelect: 'none' }}>
+    <div className="min-h-screen bg-muted/40 p-4 md:p-8" onContextMenu={(e) => e.preventDefault()} style={{ userSelect: 'none' }}>
       <AlertDialog open={isCheating}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -405,13 +490,13 @@ export default function TestClient() {
                   </DialogContent>
               </Dialog>
 
-              <div className="flex items-center gap-2 bg-muted px-3 py-1 rounded-full">
+              <div className="flex items-center gap-2 bg-background px-3 py-1 rounded-full border">
                 {renderSubjectIcon(currentQuestion.subject)}
                 <span className="font-medium">{currentQuestion.subject}</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-lg font-semibold tabular-nums">
+            <div className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-lg font-semibold tabular-nums border border-primary/20">
               <Clock className="h-5 w-5" />
               <span>{formatTime(timeLeft)}</span>
             </div>

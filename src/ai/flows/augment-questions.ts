@@ -21,6 +21,7 @@ const QuestionSchema = z.object({
     D: z.string(),
   }).describe('The four multiple-choice options, labeled A, B, C, and D.'),
   answer: z.string().length(1).describe('The correct option key (e.g., "A", "B", "C", "D").'),
+  explanation: z.string().optional().describe('A brief, one-sentence explanation for why the correct answer is right.'),
 });
 
 const ProcessPastedQuestionsInputSchema = z.object({
@@ -65,7 +66,8 @@ From the full text provided below, find all questions belonging to the '{{{subje
     - **For square roots**, use the \`&radic;\` entity and wrap the expression under the root in a \`<span>\` with an overline class, like this: \`&radic;<span class="overline">x<sup>2</sup> + y<sup>2</sup></span>\`.
     - **For conjugates** (e.g., z-bar), wrap the character in a \`<span>\` with the same overline class: \`<span class="overline">z</span>\`.
     - **For matrices**, you MUST format them using an HTML \`<table>\` with the class "matrix". For example, a text matrix like \`[a b; c d]\` or \`[[a, b], [c, d]]\` MUST be converted to the following HTML structure: \`<table class="matrix"><tbody><tr><td>a</td><td>b</td></tr><tr><td>c</td><td>d</td></tr></tbody></table>\`. Always use this table structure for matrices.
-2.  **Structure the Output:** Return the data as a JSON object with a single key "questions". The value should be an array of the question objects you found. Do not include any extra text, introductions, or explanations in your output.
+2.  **Add Explanation (in Roman Urdu):** For each question, provide a brief, one-sentence explanation in **Roman Urdu** for why the correct answer is correct. Example: 'Is formula ke mutabiq, c/a product of roots hota hai.' Include this explanation in the 'explanation' field.
+3.  **Structure the Output:** Return the data as a JSON object with a single key "questions". The value should be an array of the question objects you found. Do not include any extra text, introductions, or explanations in your output.
 
 Raw Questions Text:
 {{{allQuestions}}}
@@ -94,7 +96,10 @@ const processPastedQuestionsFlow = ai.defineFlow(
             subject: subject,
             allQuestions: input.allQuestions,
         }).then(response => {
-            if (!response.output || !response.output.questions || response.output.questions.length !== 25) {
+            if (!response.output || !response.output.questions) {
+                 throw new Error(`AI failed to process questions for ${subject}.`);
+            }
+            if (response.output.questions.length !== 25) {
                 throw new Error(`AI failed to generate exactly 25 questions for ${subject}. Found ${response.output?.questions?.length || 0}.`);
             }
             console.log(`Successfully processed 25 questions for ${subject}.`);

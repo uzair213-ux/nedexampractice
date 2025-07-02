@@ -22,6 +22,7 @@ const QuestionSchema = z.object({
     D: z.string(),
   }).describe('The four multiple-choice options, labeled A, B, C, and D.'),
   answer: z.string().length(1).describe('The correct option key (e.g., "A", "B", "C", "D").'),
+  explanation: z.string().optional().describe('A brief, one-sentence explanation for the correct answer if available in the document.'),
 });
 
 const ExtractQuestionsInputSchema = z.object({
@@ -54,6 +55,7 @@ For each question, you must identify:
 2. The question itself.
 3. The four multiple-choice options (A, B, C, D).
 4. The correct answer, which should be a single capital letter (A, B, C, or D).
+5. A brief explanation for the correct answer, if one is provided in the document. If an explanation is found, please provide it in **Roman Urdu**.
 
 The document is provided below.
 Document: {{media url=fileDataUri}}
