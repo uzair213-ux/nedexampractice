@@ -86,3 +86,23 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.matrix {
+  display: inline-table;
+  vertical-align: middle;
+  border-left: 2px solid hsl(var(--foreground));
+  border-right: 2px solid hsl(var(--foreground));
+  border-radius: 6px;
+  padding: 0 6px;
+  margin: 0 4px;
+}
+
+.matrix td {
+  padding: 2px 6px;
+  text-align: center;
+}
+
+.overline {
+  text-decoration: overline;
+  text-decoration-thickness: 1px;
+}

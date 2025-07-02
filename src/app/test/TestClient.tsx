@@ -7,12 +7,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Award, Clock, BookOpen, Calculator, Cpu, FlaskConical, AlertTriangle, ShieldCheck, Loader2, FileQuestion } from 'lucide-react';
 import NextLink from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { saveScore } from '@/ai/flows/save-score';
+import { useToast } from '@/hooks/use-toast';
 
 type TestState = 'not-started' | 'in-progress' | 'finished';
 
@@ -32,6 +35,7 @@ export default function TestClient() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
 
+  const [studentName, setStudentName] = useState('');
   const [testState, setTestState] = useState<TestState>('not-started');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
@@ -40,31 +44,36 @@ export default function TestClient() {
   const [warningMessage, setWarningMessage] = useState('');
   const [timeLeft, setTimeLeft] = useState(2 * 60 * 60); // 2 hours in seconds
   const [isNavigatorOpen, setIsNavigatorOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
 
   const userAnswersRef = useRef(userAnswers);
   userAnswersRef.current = userAnswers;
   
   useEffect(() => {
-    let loadedQuestions: Question[];
+    let finalQuestions: Question[];
     try {
       const customQuestionsRaw = sessionStorage.getItem('customQuestions');
       if (customQuestionsRaw) {
         const customQuestions = JSON.parse(customQuestionsRaw);
         if (Array.isArray(customQuestions) && customQuestions.length > 0) {
-          loadedQuestions = customQuestions;
+          // Use custom questions as they are (already ordered and shuffled)
+          finalQuestions = customQuestions;
         } else {
-          loadedQuestions = fallbackQuestions;
+          // Fallback to default questions if custom questions are invalid
+          finalQuestions = sortQuestionsBySubject(fallbackQuestions);
         }
       } else {
-        loadedQuestions = fallbackQuestions;
+        // Fallback to default questions if none are in session storage
+        finalQuestions = sortQuestionsBySubject(fallbackQuestions);
       }
     } catch (error) {
       console.error("Failed to load or parse questions, using fallback.", error);
-      loadedQuestions = fallbackQuestions;
-    } finally {
-      setQuestions(sortQuestionsBySubject(loadedQuestions));
-      setLoadingQuestions(false);
+      finalQuestions = sortQuestionsBySubject(fallbackQuestions);
     }
+    
+    setQuestions(finalQuestions);
+    setLoadingQuestions(false);
   }, []);
 
   const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
@@ -73,7 +82,7 @@ export default function TestClient() {
     return questions.length - Object.keys(userAnswers).length;
   }, [questions.length, userAnswers]);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (questions.length === 0) return;
     let calculatedScore = 0;
     questions.forEach((q) => {
@@ -81,12 +90,41 @@ export default function TestClient() {
         calculatedScore++;
       }
     });
+
     setScore(calculatedScore);
     setTestState('finished');
+    
     if(document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     }
-  }, [questions]); 
+
+    // After showing the result, save the score in the background.
+    setIsSaving(true);
+    try {
+      const result = await saveScore({
+        name: studentName,
+        score: calculatedScore,
+        total: questions.length,
+      });
+      // Show an error toast only if saving fails for a reason other than not being configured.
+      if (result && !result.success && result.message !== 'NOT_CONFIGURED') {
+         toast({
+            variant: "destructive",
+            title: "Could not save score",
+            description: result.message,
+        });
+      }
+    } catch (e: any) {
+      console.error("Failed to save score:", e);
+      toast({
+            variant: "destructive",
+            title: "Could not save score",
+            description: "An unexpected error occurred while saving your score.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [questions, studentName, toast]); 
 
   useEffect(() => {
     if (testState !== 'in-progress') return;
@@ -136,6 +174,9 @@ export default function TestClient() {
   };
 
   const handleStartTest = () => {
+    if (!studentName.trim()) {
+        return;
+    }
     requestFullScreen();
     setTestState('in-progress');
   };
@@ -222,17 +263,31 @@ export default function TestClient() {
           <CardHeader>
             <ShieldCheck className="mx-auto h-16 w-16 text-primary" />
             <CardTitle className="text-3xl font-headline">Test Instructions</CardTitle>
-            <CardDescription>Read the following carefully before you begin.</CardDescription>
+            <CardDescription>Enter your name and read the instructions carefully.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-left">
-            <p>1. The test consists of {questions.length} multiple-choice questions and has a 2-hour time limit.</p>
-            <p>2. You must remain in full-screen mode throughout the test.</p>
-            <p>3. Do not switch tabs or applications. Doing so will be flagged.</p>
-            <p>4. Copying text is disabled.</p>
-            <p className="font-bold text-destructive">Any violation of these rules will result in a warning.</p>
+            <div className='space-y-2 py-2'>
+                <Label htmlFor="studentName">Your Full Name</Label>
+                <Input 
+                    id="studentName" 
+                    placeholder="e.g. John Doe"
+                    value={studentName}
+                    onChange={(e) => setStudentName(e.target.value)}
+                    autoComplete="name"
+                />
+            </div>
+            <p className="font-bold">Instructions:</p>
+            <ul className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+                <li>The test consists of {questions.length} multiple-choice questions.</li>
+                <li>The time limit is 2 hours.</li>
+                <li>You must remain in full-screen mode throughout the test.</li>
+                <li>Do not switch tabs or applications. Doing so will be flagged.</li>
+                <li>Copying text is disabled.</li>
+                <li className="font-bold text-destructive">Any violation of these rules will result in a warning.</li>
+            </ul>
           </CardContent>
           <CardFooter>
-            <Button size="lg" className="w-full" onClick={handleStartTest}>
+            <Button size="lg" className="w-full" onClick={handleStartTest} disabled={!studentName.trim()}>
               Start Test & Enter Full-Screen
             </Button>
           </CardFooter>
@@ -247,8 +302,8 @@ export default function TestClient() {
         <Card className="w-full max-w-lg text-center shadow-2xl">
           <CardHeader>
             <Award className="mx-auto h-16 w-16 text-accent" />
-            <CardTitle className="text-3xl font-headline">Test Completed!</CardTitle>
-            <CardDescription>Here is your result.</CardDescription>
+            <CardTitle className="text-3xl font-headline">Well done, {studentName}!</CardTitle>
+            <CardDescription>Here is your test result.</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-5xl font-bold text-primary">{score} / {questions.length}</p>
@@ -256,6 +311,12 @@ export default function TestClient() {
             <div className="mt-6">
               <Progress value={questions.length > 0 ? (score / questions.length) * 100 : 0} className="h-4" />
             </div>
+             {isSaving && (
+                <div className="flex items-center justify-center mt-4 text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <p>Saving your score to the sheet...</p>
+                </div>
+            )}
           </CardContent>
            <CardFooter className="flex-col gap-4">
             <Button size="lg" className="w-full" onClick={() => window.location.reload()}>
@@ -335,7 +396,7 @@ export default function TestClient() {
                                           )}>
                                               {index + 1}
                                           </div>
-                                          <span className={cn('flex-1', !isAnswered && !isCurrent && "text-muted-foreground")}>{q.question}</span>
+                                          <span className={cn('flex-1', !isAnswered && !isCurrent && "text-muted-foreground")} dangerouslySetInnerHTML={{ __html: q.question }} />
                                       </Button>
                                   );
                               })}
@@ -360,7 +421,10 @@ export default function TestClient() {
 
         <Card key={currentQuestion.id} className="shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl leading-relaxed">{currentQuestion.question}</CardTitle>
+            <CardTitle
+              className="text-xl leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: currentQuestion.question }}
+            />
           </CardHeader>
           <CardContent>
             <RadioGroup
@@ -371,7 +435,10 @@ export default function TestClient() {
               {Object.entries(currentQuestion.options).map(([key, value]) => (
                 <Label key={key} className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 has-[input:checked]:bg-primary/10 has-[input:checked]:border-primary transition-all">
                   <RadioGroupItem value={key.toLowerCase()} id={`${currentQuestion.id}-${key}`} />
-                  <span className="font-sans text-base">{key.toUpperCase()}) {value}</span>
+                  <span
+                    className="font-sans text-base"
+                    dangerouslySetInnerHTML={{ __html: `${key.toUpperCase()}) ${value}` }}
+                  />
                 </Label>
               ))}
             </RadioGroup>
