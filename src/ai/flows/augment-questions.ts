@@ -64,7 +64,7 @@ From the full text provided below, find all questions belonging to the '{{{subje
     - Use HTML entities for operators like \`&minus;\` for minus and \`&plusmn;\` for plus-minus.
     - **For square roots**, use the \`&radic;\` entity and wrap the expression under the root in a \`<span>\` with an overline class, like this: \`&radic;<span class="overline">x<sup>2</sup> + y<sup>2</sup></span>\`.
     - **For conjugates** (e.g., z-bar), wrap the character in a \`<span>\` with the same overline class: \`<span class="overline">z</span>\`.
-    - **For matrices**, you MUST format them using an HTML \`<table>\` with the class "matrix". For example, to represent the matrix \`[[a, b], [c, d]]\`, use the following HTML structure: \`<table class="matrix"><tbody><tr><td>a</td><td>b</td></tr><tr><td>c</td><td>d</td></tr></tbody></table>\`.
+    - **For matrices**, you MUST format them using an HTML \`<table>\` with the class "matrix". For example, a text matrix like \`[a b; c d]\` or \`[[a, b], [c, d]]\` MUST be converted to the following HTML structure: \`<table class="matrix"><tbody><tr><td>a</td><td>b</td></tr><tr><td>c</td><td>d</td></tr></tbody></table>\`. Always use this table structure for matrices.
 2.  **Structure the Output:** Return the data as a JSON object with a single key "questions". The value should be an array of the question objects you found. Do not include any extra text, introductions, or explanations in your output.
 
 Raw Questions Text:

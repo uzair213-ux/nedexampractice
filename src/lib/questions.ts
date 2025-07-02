@@ -264,7 +264,7 @@ export const questions: Question[] = [
   {
     id: 12,
     subject: 'Math',
-    question: 'The matrix [0 0; 0 0] is a:',
+    question: 'The matrix <table class="matrix"><tbody><tr><td>0</td><td>0</td></tr><tr><td>0</td><td>0</td></tr></tbody></table> is a:',
     options: { A: 'Identity matrix', B: 'Scalar matrix', C: 'Zero matrix', D: 'Unit matrix' },
     answer: 'C',
   },
@@ -285,7 +285,7 @@ export const questions: Question[] = [
   {
     id: 15,
     subject: 'Math',
-    question: 'If A=[1 0; 0 1], then A is an:',
+    question: 'If A=<table class="matrix"><tbody><tr><td>1</td><td>0</td></tr><tr><td>0</td><td>1</td></tr></tbody></table>, then A is an:',
     options: { A: 'Zero Matrix', B: 'Scalar Matrix', C: 'Identity Matrix', D: 'Diagonal Matrix' },
     answer: 'C',
   },
@@ -355,7 +355,7 @@ export const questions: Question[] = [
   {
     id: 25,
     subject: 'Math',
-    question: 'If A=[2 0; 0 2], then A is a:',
+    question: 'If A=<table class="matrix"><tbody><tr><td>2</td><td>0</td></tr><tr><td>0</td><td>2</td></tr></tbody></table>, then A is a:',
     options: { A: 'Zero Matrix', B: 'Scalar Matrix', C: 'Identity Matrix', D: 'Diagonal Matrix' },
     answer: 'B',
   },
