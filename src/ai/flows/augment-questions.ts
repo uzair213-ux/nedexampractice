@@ -64,7 +64,7 @@ ANSWER: A
        *   Example: \`|2 3; 4 8|\` becomes \`<table class="matrix"><tbody><tr><td>2</td><td>3</td></tr><tr><td>4</td><td>8</td></tr></tbody></table>\`.
 4.  **HTML Formatting for English:**
     *   For questions that require filling a blank or replacing a word, add a clear instruction in \`<strong>\` tags at the beginning. Example: \`<strong>Complete the sentence:</strong><br/>...\`
-    *   If the original question has an underlined word, preserve the \`<u>\` tag.
+    *   For "Identify the error" questions, do NOT use any special formatting like underlines to highlight the potential error. The sentence should appear as a normal sentence.
 5.  **Roman Urdu Explanation:** For EACH question, you MUST generate a brief, one-sentence explanation in **Roman Urdu** for why the correct answer is right. The user has NOT provided this; you must create it.
 6.  **No Changes to Content:** Do NOT change the question text, options, or the correct answer provided by the user. Your job is to format it and add the explanation.
 

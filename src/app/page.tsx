@@ -38,49 +38,55 @@ export default async function Home() {
       </div>
 
       <div className="mt-12 flex flex-wrap justify-center gap-8">
-        <Card className="w-full max-w-sm transition-all hover:shadow-lg hover:-translate-y-1 border-border/60 text-center">
-          <CardHeader>
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 mx-auto">
-              <FileText className="h-6 w-6 text-primary" />
-            </div>
-            <CardTitle className="font-heading text-xl">Standardized Test</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Begin the full-length practice test covering Math, Physics, English, and Computer Science to gauge your preparation.
-            </p>
-          </CardContent>
-        </Card>
-
-        {admitCardVisible && (
-          <Card className="w-full max-w-sm transition-all hover:shadow-lg hover:-translate-y-1 border-border/60 text-center">
+        <NextLink href="/test" passHref className="w-full max-w-sm">
+          <Card className="transition-all hover:shadow-lg hover:-translate-y-1 border-border/60 text-center flex flex-col h-full cursor-pointer">
             <CardHeader>
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-green-500/10 mx-auto">
-                <ClipboardEdit className="h-6 w-6 text-green-600" />
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 mx-auto">
+                <FileText className="h-6 w-6 text-primary" />
               </div>
-              <CardTitle className="font-heading text-xl">Generate Admit Card</CardTitle>
+              <CardTitle className="font-heading text-xl">Standardized Test</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow">
               <p className="text-muted-foreground">
-                Fill in your details to generate and download your official admit card for the entry test.
+                Begin the full-length practice test covering Math, Physics, English, and Computer Science to gauge your preparation.
               </p>
             </CardContent>
           </Card>
+        </NextLink>
+
+        {admitCardVisible && (
+           <NextLink href="/admit-card" passHref className="w-full max-w-sm">
+            <Card className="transition-all hover:shadow-lg hover:-translate-y-1 border-border/60 text-center flex flex-col h-full cursor-pointer">
+              <CardHeader>
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-green-500/10 mx-auto">
+                  <ClipboardEdit className="h-6 w-6 text-green-600" />
+                </div>
+                <CardTitle className="font-heading text-xl">Generate Admit Card</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="text-muted-foreground">
+                  Fill in your details to generate and download your official admit card for the entry test.
+                </p>
+              </CardContent>
+            </Card>
+          </NextLink>
         )}
 
-        <Card className="w-full max-w-sm transition-all hover:shadow-lg hover:-translate-y-1 border-border/60 text-center">
-          <CardHeader>
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-yellow-500/10 mx-auto">
-              <UserCog className="h-6 w-6 text-yellow-600" />
-            </div>
-            <CardTitle className="font-heading text-xl">Admin Panel</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-             Access the admin dashboard to upload, generate, and manage all test content and site settings.
-            </p>
-          </CardContent>
-        </Card>
+        <NextLink href="/admin" passHref className="w-full max-w-sm">
+          <Card className="transition-all hover:shadow-lg hover:-translate-y-1 border-border/60 text-center flex flex-col h-full cursor-pointer">
+            <CardHeader>
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-yellow-500/10 mx-auto">
+                <UserCog className="h-6 w-6 text-yellow-600" />
+              </div>
+              <CardTitle className="font-heading text-xl">Admin Panel</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <p className="text-muted-foreground">
+               Access the admin dashboard to upload, generate, and manage all test content and site settings.
+              </p>
+            </CardContent>
+          </Card>
+        </NextLink>
       </div>
     </section>
   );

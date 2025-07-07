@@ -10,7 +10,7 @@ export type Question = {
 
 // This is your new, expandable question bank.
 export const questionBank: Question[] = [
-  // English Questions (250 total)
+  // English Questions
   {
     "id": 1001,
     "subject": "English",
@@ -150,7 +150,7 @@ export const questionBank: Question[] = [
   {
     "id": 1018,
     "subject": "English",
-    "question": "<strong>Identify the error:</strong><br/><u>It estimated is</u> that only about thirty percent of our planet's surface consists of land.",
+    "question": "<strong>Identify the error:</strong><br/>It estimated is that only about thirty percent of our planet's surface consists of land.",
     "options": { "A": "It estimated is", "B": "that", "C": "consists of", "D": "land" },
     "answer": "A",
     "explanation": "Grammar ke lihaz se 'It estimated is' ghalat hai. Sahi jumla 'It is estimated' hoga."
@@ -158,7 +158,7 @@ export const questionBank: Question[] = [
   {
     "id": 1019,
     "subject": "English",
-    "question": "<strong>Identify the error:</strong><br/>In the early years of the Republic, George Washington proposed the establishment of <u>an university</u> in the nation's capital.",
+    "question": "<strong>Identify the error:</strong><br/>In the early years of the Republic, George Washington proposed the establishment of an university in the nation's capital.",
     "options": { "A": "In the early years", "B": "proposed", "C": "an university", "D": "nation's capital" },
     "answer": "C",
     "explanation": "'University' ke shuru mein 'an' ki bajaye 'a' istimal hoga kyunki 'university' ki aawaz consonant se shuru hoti hai (y-sound)."
@@ -166,7 +166,7 @@ export const questionBank: Question[] = [
   {
     "id": 1020,
     "subject": "English",
-    "question": "<strong>Identify the error:</strong><br/>General reference maps include basic information, <u>such continents</u>, countries, rivers, cities and other features.",
+    "question": "<strong>Identify the error:</strong><br/>General reference maps include basic information, such continents, countries, rivers, cities and other features.",
     "options": { "A": "include", "B": "basic information", "C": "such continents", "D": "features" },
     "answer": "C",
     "explanation": "'Such continents' ghalat hai. Is ki bajaye 'such as continents' hona chahiye."
@@ -174,7 +174,7 @@ export const questionBank: Question[] = [
   {
     "id": 1021,
     "subject": "English",
-    "question": "<strong>Identify the error:</strong><br/>The St. Lawrence Seaway, which runs between British Columbia and New York, <u>has completed</u> by the United States and Canada 1959.",
+    "question": "<strong>Identify the error:</strong><br/>The St. Lawrence Seaway, which runs between British Columbia and New York, has completed by the United States and Canada 1959.",
     "options": { "A": "which runs", "B": "has completed", "C": "by the United States and Canada", "D": "in" },
     "answer": "B",
     "explanation": "Sentence passive voice mein hona chahiye, isliye 'has completed' ki bajaye 'was completed' hona chahiye."
@@ -182,7 +182,7 @@ export const questionBank: Question[] = [
   {
     "id": 1022,
     "subject": "English",
-    "question": "<strong>Identify the error:</strong><br/>Dolphins are warm blooded; that is, <u>its</u> body temperature always stays about the same regardless of the surroundings.",
+    "question": "<strong>Identify the error:</strong><br/>Dolphins are warm blooded; that is, its body temperature always stays about the same regardless of the surroundings.",
     "options": { "A": "its", "B": "always stays", "C": "the same", "D": "surroundings" },
     "answer": "A",
     "explanation": "'Dolphins' plural hai, isliye 'its' ki bajaye 'their' istimal hoga."
@@ -206,7 +206,7 @@ export const questionBank: Question[] = [
   {
     "id": 1025,
     "subject": "English",
-    "question": "<strong>Choose the synonym:</strong><br/>He is <u>good</u> at making plans.",
+    "question": "<strong>Choose the synonym:</strong><br/>He is <u>good at</u> making plans.",
     "options": { "A": "Clever", "B": "Expert", "C": "Intelligent", "D": "Bold" },
     "answer": "B",
     "explanation": "Woh mansoobay banane mein mahir hai. 'Good at' ka matlab mahir hona hai, isliye 'expert' sahi hai."
@@ -278,7 +278,7 @@ export const questionBank: Question[] = [
   {
     "id": 1034,
     "subject": "English",
-    "question": "<strong>Identify the error:</strong><br/>Each of the students <u>are</u> responsible for their own work.",
+    "question": "<strong>Identify the error:</strong><br/>Each of the students are responsible for their own work.",
     "options": { "A": "Each of", "B": "are", "C": "responsible for", "D": "their own work" },
     "answer": "B",
     "explanation": "'Each' ke sath hamesha singular verb 'is' istimal hota hai, 'are' nahi."
@@ -326,7 +326,7 @@ export const questionBank: Question[] = [
   {
     "id": 1040,
     "subject": "English",
-    "question": "<strong>Identify the error:</strong><br/>I have <u>went</u> to the store yesterday.",
+    "question": "<strong>Identify the error:</strong><br/>I have went to the store yesterday.",
     "options": { "A": "I have", "B": "went", "C": "to the store", "D": "yesterday" },
     "answer": "B",
     "explanation": "'Have' ke sath verb ki third form ('gone') aati hai. Sahi jumla hoga 'I went to the store yesterday'."
@@ -374,7 +374,7 @@ export const questionBank: Question[] = [
   {
     "id": 1046,
     "subject": "English",
-    "question": "<strong>Identify the error:</strong><br/>The reason I am late is <u>because</u> the traffic was bad.",
+    "question": "<strong>Identify the error:</strong><br/>The reason I am late is because the traffic was bad.",
     "options": { "A": "The reason", "B": "is", "C": "because", "D": "was bad" },
     "answer": "C",
     "explanation": "'The reason is' aur 'because' dono ek hi matlab dete hain, isliye 'because' yahan zayed (redundant) hai. Sahi jumla hoga 'The reason I am late is that...'"
@@ -438,7 +438,7 @@ export const questionBank: Question[] = [
   {
     "id": 1054,
     "subject": "English",
-    "question": "<strong>Identify the error:</strong><br/>Me and my friend <u>are going</u> to the movies.",
+    "question": "<strong>Identify the error:</strong><br/>Me and my friend are going to the movies.",
     "options": { "A": "Me and my friend", "B": "are going", "C": "to the", "D": "movies" },
     "answer": "A",
     "explanation": "Jab aap subject ke taur par baat kar rahe hon, to 'My friend and I' istemal karna chahiye, na ke 'Me and my friend'."
@@ -486,36 +486,13 @@ export const questionBank: Question[] = [
   {
     "id": 1060,
     "subject": "English",
-    "question": "<strong>Identify the error:</strong><br/>She is one of the girls who <u>is</u> always on time.",
+    "question": "<strong>Identify the error:</strong><br/>She is one of the girls who is always on time.",
     "options": { "A": "one of the girls", "B": "who", "C": "is", "D": "on time" },
     "answer": "C",
     "explanation": "Yahan 'who' ka talluq 'girls' (plural) se hai, isliye verb bhi plural ('are') hona chahiye, na ke 'is'."
   },
-  ...Array.from({ length: 190 }, (_, i) => {
-    const questions = [
-      { q: "<strong>Choose the synonym:</strong><br/>He gave a very <u>candid</u> assessment of the situation.", o: { "A": "Devious", "B": "Frank", "C": "Secretive", "D": "Biased" }, a: "B", e: "Candid ka matlab hai saaf-go ya khara. 'Frank' iska sahi synonym hai." },
-      { q: "<strong>Choose the antonym:</strong><br/>The bright red car was <u>conspicuous</u> among the sea of grey vehicles.", o: { "A": "Obvious", "B": "Apparent", "C": "Hidden", "D": "Visible" }, a: "C", e: "Conspicuous ka matlab 'numayan' ya 'wazeh' hai. Iska ulta 'hidden' ya 'posheeda' hoga." },
-      { q: "<strong>Complete the sentence:</strong><br/>She has a ______ for classical music.", o: { "A": "predilection", "B": "dislike", "C": "hatred", "D": "fear" }, a: "A", e: "Predilection ka matlab 'khaas pasand' ya 'rujhan' hai." },
-      { q: "<strong>Identify the error:</strong><br/>The committee <u>have</u> submitted its report.", o: { "A": "The committee", "B": "have", "C": "submitted", "D": "its report" }, a: "B", e: "Committee ek collective noun hai, jab yeh ek unit ke tor par kaam kar raha ho to singular verb ('has') istemal hota hai." },
-      { q: "<strong>Choose the closest meaning:</strong><br/>The task was extremely <u>arduous</u>.", o: { "A": "Easy", "B": "Pleasant", "C": "Difficult", "D": "Quick" }, a: "C", e: "Arduous ka matlab 'bohot mushkil' ya 'mehnat talab' hai." },
-      { q: "<strong>Choose the correct word:</strong><br/>I would rather starve ______ beg.", o: { "A": "to", "B": "than", "C": "then", "D": "from" }, a: "B", e: "'Would rather' ke sath 'than' ka istemal hota hai jab do cheezon mein tarjeeh deni ho." },
-      { q: "<strong>Choose the synonym:</strong><br/>He is a <u>gregarious</u> person who loves parties and social events.", o: { "A": "Shy", "B": "Sociable", "C": "Introverted", "D": "Lonely" }, a: "B", e: "Gregarious ka matlab 'milansaar' ya 'ghulne milne wala' hai." },
-      { q: "<strong>Choose the antonym:</strong><br/>His harsh words only served to <u>exacerbate</u> the tense situation.", o: { "A": "Worsen", "B": "Aggravate", "C": "Alleviate", "D": "Intensify" }, a: "C", e: "Exacerbate ka matlab 'bigaadna' hai. Iska ulta 'alleviate' ya 'kam karna' hoga." },
-      { q: "<strong>Complete the sentence:</strong><br/>The evidence was ______ to the case.", o: { "A": "impertinent", "B": "pertinent", "C": "irrelevant", "D": "unrelated" }, a: "B", e: "Pertinent ka matlab 'mutaliqa' ya 'munasib' hai." },
-      { q: "<strong>Identify the error:</strong><br/>If I was you, I <u>will not</u> do that.", o: { "A": "If I was you", "B": "I", "C": "will not", "D": "do that" }, a: "C", e: "Yeh ek conditional sentence (type 2) hai, isliye 'will not' ki jagah 'would not' istemal hoga." }
-    ];
-    const item = questions[i % questions.length];
-    return {
-      id: 1061 + i,
-      subject: "English" as 'English',
-      question: item.q,
-      options: item.o,
-      answer: item.a,
-      explanation: item.e
-    }
-  }),
 
-  // Computer Questions (250 total)
+  // Computer Questions
   {
     "id": 2001,
     "subject": "Computer",
@@ -916,31 +893,8 @@ export const questionBank: Question[] = [
     "answer": "C",
     "explanation": "Wi-Fi ek wireless networking technology hai jo devices ko internet se baghair taar ke jorne ki ijazat deti hai."
   },
-  ...Array.from({ length: 200 }, (_, i) => {
-    const questions = [
-        { q: "What is the function of a router in a network?", o: { "A": "To connect multiple computers in a LAN", "B": "To filter content", "C": "To forward data packets between different networks", "D": "To provide power to devices" }, a: "C", e: "Router ka bunyadi kaam mukhtalif networks ke darmiyan data packets ko bhejna hai." },
-        { q: "What is 'phishing'?", o: { "A": "A type of fishing sport", "B": "A method to cool down CPU", "C": "A fraudulent attempt to obtain sensitive information", "D": "A type of computer hardware" }, a: "C", e: "Phishing ek dhoka-dahi ka tareeqa hai jisme hassas maloomat (jaise passwords) hasil karne ki koshish ki jati hai." },
-        { q: "Which data structure uses FIFO (First-In, First-Out)?", o: { "A": "Stack", "B": "Queue", "C": "Array", "D": "Tree" }, a: "B", e: "Queue FIFO ke usool par kaam karti hai, jahan jo cheez pehle aati hai woh pehle nikalti hai." },
-        { q: "What does URL stand for?", o: { "A": "Universal Resource Locator", "B": "Uniform Resource Locator", "C": "Universal Resource Link", "D": "Uniform Resource Link" }, a: "B", e: "URL ka matlab Uniform Resource Locator hai, jo web par kisi bhi resource ka address hota hai." },
-        { q: "Which of these is a non-volatile memory?", o: { "A": "RAM", "B": "Cache", "C": "ROM", "D": "Register" }, a: "C", e: "ROM (Read-Only Memory) non-volatile hai, yani power off hone par iska data zaya nahi hota." },
-        { q: "In programming, what is an 'array'?", o: { "A": "A single variable", "B": "A collection of elements of the same data type", "C": "A type of function", "D": "A loop" }, a: "B", e: "Array ek hi data type ke elements ka majmooa hota hai jo ek sath store kiye jate hain." },
-        { q: "What is the binary equivalent of the decimal number 10?", o: { "A": "1010", "B": "1100", "C": "1001", "D": "0110" }, a: "A", e: "Decimal 10 ko binary mein 1010 likha jata hai (8 + 2)." },
-        { q: "Which protocol is used for sending emails?", o: { "A": "FTP", "B": "HTTP", "C": "SMTP", "D": "POP3" }, a: "C", e: "SMTP (Simple Mail Transfer Protocol) emails bhejne ke liye istemal hota hai." },
-        { q: "What does GUI stand for?", o: { "A": "Graphical User Interface", "B": "General User Interaction", "C": "Global User Index", "D": "Graphical Utility Interface" }, a: "A", e: "GUI ka matlab Graphical User Interface hai, jo users ko visual elements (icons, menus) ke zariye computer se interact karne ki ijazat deta hai." },
-        { q: "What is the purpose of CSS in web development?", o: { "A": "To structure the content of a web page", "B": "To add interactivity to a web page", "C": "To style the visual presentation of a web page", "D": "To manage the server" }, a: "C", e: "CSS (Cascading Style Sheets) web pages ki visual presentation (style, layout, colors) ko control karne ke liye istemal hoti hai." }
-    ];
-    const item = questions[i % questions.length];
-    return {
-      id: 2051 + i,
-      subject: "Computer" as 'Computer',
-      question: item.q,
-      options: item.o,
-      answer: item.a,
-      explanation: item.e
-    }
-  }),
 
-  // Physics Questions (250 total)
+  // Physics Questions
   {
     "id": 3001,
     "subject": "Physics",
@@ -1341,31 +1295,8 @@ export const questionBank: Question[] = [
     "answer": "C",
     "explanation": "Sayyaron ko unke madar (orbits) mein suraj ke gird rakhne wali quwwat kashish-e-saqal (gravitational force) hai."
   },
-  ...Array.from({ length: 200 }, (_, i) => {
-    const questions = [
-        { q: "The escape velocity from the Earth's surface is approximately:", o: { "A": "7.9 km/s", "B": "11.2 km/s", "C": "9.8 m/s", "D": "25 km/s" }, a: "B", e: "Zameen ki satah se escape velocity taqreeban 11.2 km/s hai. Is raftaar se kisi jism ko phenkne par woh zameen ki kashish se bahar nikal jata hai." },
-        { q: "What is Bernoulli's principle related to?", o: { "A": "Fluid dynamics", "B": "Thermodynamics", "C": "Optics", "D": "Electromagnetism" }, a: "A", e: "Bernoulli ka usool fluid dynamics se mutaliq hai, jo fluid ki speed, pressure, aur potential energy ke darmiyan taluq batata hai." },
-        { q: "Which law states that for every action, there is an equal and opposite reaction?", o: { "A": "Newton's First Law", "B": "Newton's Second Law", "C": "Newton's Third Law", "D": "Law of Gravitation" }, a: "C", e: "Newton ka teesra qanoon batata hai ke har action ka ek barabar aur mukhalif reaction hota hai." },
-        { q: "The unit of work, Joule, is equivalent to:", o: { "A": "Newton-meter", "B": "Watt-second", "C": "Kilogram-meter/second²", "D": "Pascal-meter³" }, a: "A", e: "Work ka formula Force × Distance hai, isliye Joule, Newton-meter ke barabar hota hai." },
-        { q: "Which of the following electromagnetic waves has the highest frequency?", o: { "A": "Radio waves", "B": "Microwaves", "C": "X-rays", "D": "Gamma rays" }, a: "D", e: "Electromagnetic spectrum mein, Gamma rays ki frequency sab se zyada hoti hai." },
-        { q: "A concave lens always forms which type of image?", o: { "A": "Real, inverted, and magnified", "B": "Virtual, erect, and diminished", "C": "Real, erect, and diminished", "D": "Virtual, inverted, and magnified" }, a: "B", e: "Concave lens hamesha virtual, seedhi (erect), aur choti (diminished) image banata hai." },
-        { q: "What is the principle behind the working of a transformer?", o: { "A": "Self-induction", "B": "Mutual induction", "C": "Ohm's Law", "D": "Lenz's Law" }, a: "B", e: "Transformer mutual induction ke usool par kaam karta hai, jahan ek coil mein current ki tabdeeli doosri coil mein voltage paida karti hai." },
-        { q: "The phenomenon of splitting of light into its constituent colors is called:", o: { "A": "Interference", "B": "Diffraction", "C": "Polarization", "D": "Dispersion" }, a: "D", e: "Roshni ka apne rangon mein toot jane ke amal ko dispersion kehte hain, jaisa ke prism mein hota hai." },
-        { q: "What is the SI unit of magnetic flux?", o: { "A": "Tesla", "B": "Gauss", "C": "Weber", "D": "Henry" }, a: "C", e: "Magnetic flux ka SI unit Weber (Wb) hai." },
-        { q: "If the speed of a car is doubled, its kinetic energy becomes:", o: { "A": "Double", "B": "Half", "C": "Four times", "D": "Remains same" }, a: "C", e: "Kinetic energy ka formula 1/2 * mv² hai. Agar speed double ho jaye, to kinetic energy (2)² yaani 4 guna ho jayegi." }
-    ];
-    const item = questions[i % questions.length];
-    return {
-      id: 3051 + i,
-      subject: "Physics" as 'Physics',
-      question: item.q,
-      options: item.o,
-      answer: item.a,
-      explanation: item.e
-    }
-  }),
 
-  // Math Questions (250 total)
+  // Math Questions
   {
     "id": 4001,
     "subject": "Math",
@@ -1765,30 +1696,7 @@ export const questionBank: Question[] = [
     "options": { "A": "n(n+1)", "B": "n<sup>2</sup>", "C": "n(n+1)/2", "D": "2n" },
     "answer": "C",
     "explanation": "Pehle 'n' qudrati adad (natural numbers) ka majmooa n(n+1)/2 ke formula se nikala jata hai."
-  },
-  ...Array.from({ length: 200 }, (_, i) => {
-    const questions = [
-        { q: "What is 5! (factorial)?", o: { "A": "120", "B": "60", "C": "24", "D": "5" }, a: "A", e: "5! = 5 × 4 × 3 × 2 × 1 = 120." },
-        { q: "The sum of angles in a quadrilateral is:", o: { "A": "180 degrees", "B": "270 degrees", "C": "360 degrees", "D": "540 degrees" }, a: "C", e: "Kisi bhi quadrilateral (char-konay wali shakal) ke andar ke tamam angles ka majmooa hamesha 360 degrees hota hai." },
-        { q: "The equation of a line parallel to the y-axis is:", o: { "A": "y = k", "B": "x = k", "C": "y = x", "D": "y = -x" }, a: "B", e: "Y-axis ke parallel line ki equation x = k hoti hai, jahan k ek constant hai." },
-        { q: "If log<sub>a</sub>(b) = c, then:", o: { "A": "a<sup>c</sup> = b", "B": "b<sup>c</sup> = a", "C": "c<sup>a</sup> = b", "D": "a<sup>b</sup> = c" }, a: "A", e: "Logarithm ki definition ke mutabiq, logₐ(b) = c, aᶜ = b ke barabar hai." },
-        { q: "The multiplicative inverse of (3 + 4i) is:", o: { "A": "3 - 4i", "B": "(3 - 4i)/25", "C": "(3 + 4i)/25", "D": "1/(3 - 4i)" }, a: "B", e: "Multiplicative inverse 1/(3+4i) hota hai. Isko (3-4i) se multiply aur divide karne par (3-4i)/(9 - 16i²) = (3-4i)/25 milta hai." },
-        { q: "The period of sin(2x) is:", o: { "A": "2&pi;", "B": "&pi;", "C": "&pi;/2", "D": "4&pi;" }, a: "B", e: "sin(ax) ka period 2π/|a| hota hai. Isliye, sin(2x) ka period 2π/2 = π hoga." },
-        { q: "The number of permutations of n objects taken r at a time is given by:", o: { "A": "n! / r!", "B": "n! / (n-r)!", "C": "n! / (r!(n-r)!)", "D": "(n-r)! / n!" }, a: "B", e: "n objects mein se r objects ki permutations ka formula nPr = n! / (n-r)! hai." },
-        { q: "The center of the circle x² + y² - 4x + 6y - 12 = 0 is:", o: { "A": "(2, -3)", "B": "(-2, 3)", "C": "(4, -6)", "D": "(-4, 6)" }, a: "A", e: "Circle ki general equation x² + y² + 2gx + 2fy + c = 0 mein center (-g, -f) hota hai. Yahan 2g=-4 => g=-2, aur 2f=6 => f=3. Center (2, -3) hai." },
-        { q: "The dot product of two orthogonal (perpendicular) vectors is:", o: { "A": "1", "B": "0", "C": "-1", "D": "Undefined" }, a: "B", e: "Do perpendicular vectors ka dot product hamesha zero hota hai." },
-        { q: "&int; (1/x) dx =", o: { "A": "x² + C", "B": "ln|x| + C", "C": "-1/x² + C", "D": "1 + C" }, a: "B", e: "1/x ka integral ln|x| + C hota hai." }
-    ];
-    const item = questions[i % questions.length];
-    return {
-      id: 4051 + i,
-      subject: "Math" as 'Math',
-      question: item.q,
-      options: item.o,
-      answer: item.a,
-      explanation: item.e
-    }
-  })
+  }
 ];
 
 /**
