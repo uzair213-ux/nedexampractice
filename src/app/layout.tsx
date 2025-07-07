@@ -1,12 +1,26 @@
 import type { Metadata } from 'next';
+import { Inter, Poppins } from 'next/font/google';
+
 import './globals.css';
+import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/Header';
 import FirebaseAnalytics from '@/components/FirebaseAnalytics';
 
+const fontSans = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+});
+
+const fontHeading = Poppins({
+  subsets: ['latin'],
+  weight: ['600', '700'],
+  variable: '--font-heading',
+});
+
 export const metadata: Metadata = {
-  title: 'NED Exam',
-  description: 'MCQ Test Portal',
+  title: 'NED Exam Portal',
+  description: 'A professional and secure platform for MCQ-based assessments.',
   icons: {
     icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>',
   },
@@ -19,15 +33,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Source+Code+Pro&display=swap" rel="stylesheet" />
-      </head>
-      <body className="font-body antialiased">
+      <body
+        className={cn(
+          'min-h-screen bg-background font-sans antialiased',
+          fontSans.variable,
+          fontHeading.variable
+        )}
+      >
         <FirebaseAnalytics />
-        <Header />
-        <main>{children}</main>
+        <div className="relative flex min-h-screen flex-col">
+          <Header />
+          <div className="flex-1">{children}</div>
+        </div>
         <Toaster />
       </body>
     </html>

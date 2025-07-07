@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Upload, Eye, EyeOff, RotateCw, Loader2 } from "lucide-react";
+import { Bot, Upload, Eye, EyeOff, RotateCw, Loader2, ArrowRight } from "lucide-react";
 import NextLink from 'next/link';
 import { useState, useEffect, useTransition } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -65,21 +65,18 @@ export default function AdminDashboardPage() {
   return (
     <div className="container mx-auto py-10">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold tracking-tight text-foreground font-headline">Admin Dashboard</h1>
+        <h1 className="text-4xl font-extrabold tracking-tight text-foreground font-heading">Admin Dashboard</h1>
         <p className="mt-2 text-lg text-muted-foreground">Manage your test content and site settings.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <div className="flex items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-full">
-                <Bot className="h-8 w-8 text-primary" />
+               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                <Bot className="h-6 w-6 text-primary" />
               </div>
-              <div>
-                <CardTitle>AI Test Formatter</CardTitle>
-                <CardDescription>Format a new 100-question test from text.</CardDescription>
-              </div>
+              <CardTitle className="font-heading text-xl">AI Test Formatter</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -87,8 +84,8 @@ export default function AdminDashboardPage() {
               Paste questions for each subject, and let the AI format them for the test.
             </p>
             <NextLink href="/admin/augment" passHref>
-              <Button className="w-full">
-                Go to Formatter
+              <Button>
+                Go to Formatter <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </NextLink>
           </CardContent>
@@ -97,13 +94,10 @@ export default function AdminDashboardPage() {
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <div className="flex items-center gap-4">
-               <div className="bg-accent/10 p-3 rounded-full">
-                <Upload className="h-8 w-8 text-accent" />
+               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                <Upload className="h-6 w-6 text-primary" />
               </div>
-              <div>
-                <CardTitle>Upload Questions</CardTitle>
-                <CardDescription>Upload a document with questions.</CardDescription>
-              </div>
+              <CardTitle className="font-heading text-xl">Upload Questions</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -111,8 +105,8 @@ export default function AdminDashboardPage() {
               Upload a .txt or .pdf file to populate the test questions.
             </p>
             <NextLink href="/admin/upload" passHref>
-              <Button variant="outline" className="w-full">
-                Go to Upload
+              <Button variant="outline">
+                Go to Upload <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </NextLink>
           </CardContent>
@@ -121,13 +115,10 @@ export default function AdminDashboardPage() {
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <div className="flex items-center gap-4">
-              <div className="bg-red-500/10 p-3 rounded-full">
-                {isLoadingVisibility ? <Loader2 className="h-8 w-8 animate-spin text-red-500" /> : (isAdmitCardVisible ? <Eye className="h-8 w-8 text-red-500" /> : <EyeOff className="h-8 w-8 text-red-500" />)}
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-500/10">
+                {isLoadingVisibility ? <Loader2 className="h-6 w-6 animate-spin text-red-500" /> : (isAdmitCardVisible ? <Eye className="h-6 w-6 text-red-500" /> : <EyeOff className="h-6 w-6 text-red-500" />)}
               </div>
-              <div>
-                <CardTitle>Admit Card Visibility</CardTitle>
-                <CardDescription>Show or hide the admit card page for all users.</CardDescription>
-              </div>
+              <CardTitle className="font-heading text-xl">Admit Card Visibility</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -139,7 +130,7 @@ export default function AdminDashboardPage() {
                 </p>
              )}
             <Button variant={isAdmitCardVisible ? "destructive" : "default"} className="w-full" onClick={toggleAdmitCardVisibility} disabled={isPending || isLoadingVisibility}>
-              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (isAdmitCardVisible ? 'Hide Admit Card Page' : 'Show Admit Card Page')}
+              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (isAdmitCardVisible ? <><EyeOff className="mr-2 h-4 w-4"/> Hide Admit Card Page</> : <><Eye className="mr-2 h-4 w-4"/> Show Admit Card Page</>)}
             </Button>
           </CardContent>
         </Card>
@@ -147,21 +138,18 @@ export default function AdminDashboardPage() {
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <div className="flex items-center gap-4">
-              <div className="bg-orange-500/10 p-3 rounded-full">
-                <RotateCw className="h-8 w-8 text-orange-500" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-500/10">
+                <RotateCw className="h-6 w-6 text-orange-500" />
               </div>
-              <div>
-                <CardTitle>Reset Questions</CardTitle>
-                <CardDescription>Use the default built-in questions.</CardDescription>
-              </div>
+               <CardTitle className="font-heading text-xl">Reset Questions</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
              <p className="text-muted-foreground mb-4">
-                Clear any uploaded or generated questions and revert to the original test with explanations.
+                Clear any custom questions and revert to the original built-in test.
             </p>
-             <Button variant="destructive" className="w-full" onClick={resetQuestions}>
-                Reset to Default Questions
+             <Button variant="outline" className="w-full border-orange-500/50 text-orange-600 hover:bg-orange-500/10 hover:text-orange-700" onClick={resetQuestions}>
+                <RotateCw className="mr-2 h-4 w-4" /> Reset to Default
             </Button>
           </CardContent>
         </Card>

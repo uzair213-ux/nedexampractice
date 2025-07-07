@@ -267,6 +267,8 @@ export default function TestClient() {
     pdfContainer.style.width = '800px';
     pdfContainer.style.fontFamily = 'Arial, sans-serif';
     pdfContainer.style.color = 'black';
+    pdfContainer.style.backgroundColor = 'white';
+
 
     const requiredStyles = `
         <style>
@@ -277,9 +279,9 @@ export default function TestClient() {
             .question-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; page-break-inside: avoid; }
             .question-text { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
             .answer-box { padding: 8px; border-radius: 5px; margin-top: 8px; border: 1px solid #ddd; }
-            .user-answer { background-color: #ffebee; }
-            .correct-answer { background-color: #e8f5e9; }
-            .explanation { background-color: #fffde7; margin-top: 10px; }
+            .user-answer { background-color: #ffebee; color: #c62828; }
+            .correct-answer { background-color: #e8f5e9; color: #2e7d32; }
+            .explanation { background-color: #fffde7; color: #6d4c41; margin-top: 10px; }
             .matrix { display: inline-table; vertical-align: middle; border-left: 2px solid black; border-right: 2px solid black; border-radius: 4px; padding: 0 4px; margin: 0 2px; }
             .matrix td { padding: 2px 4px; text-align: center; }
             .overline { text-decoration: overline; }
@@ -610,7 +612,7 @@ export default function TestClient() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/40 p-4 md:p-8" onContextMenu={(e) => e.preventDefault()} style={{ userSelect: 'none' }}>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-2 sm:p-4 md:p-6" onContextMenu={(e) => e.preventDefault()} style={{ userSelect: 'none' }}>
       <AlertDialog open={isCheating}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -631,11 +633,14 @@ export default function TestClient() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-6 space-y-4">
           <div className="flex justify-between items-center flex-wrap gap-4">
-            <h2 className="text-xl font-semibold font-headline">Question {currentQuestionIndex + 1} of {questions.length}</h2>
-            <div className="flex items-center gap-x-4">
+            <h2 className="text-xl sm:text-2xl font-bold font-heading text-slate-700 dark:text-slate-200">
+              Question {currentQuestionIndex + 1}{' '}
+              <span className="font-normal text-slate-400">/ {questions.length}</span>
+            </h2>
+            <div className="flex items-center gap-x-2 sm:gap-x-4">
               <Dialog open={isNavigatorOpen} onOpenChange={setIsNavigatorOpen}>
                   <DialogTrigger asChild>
-                      <Button variant="outline" className="relative">
+                      <Button variant="outline" className="relative bg-white dark:bg-slate-800">
                           <FileQuestion className="mr-2 h-4 w-4" />
                           <span>Question List</span>
                           {unansweredQuestionsCount > 0 && (
@@ -683,38 +688,41 @@ export default function TestClient() {
                   </DialogContent>
               </Dialog>
 
-              <div className="flex items-center gap-2 bg-background px-3 py-1 rounded-full border">
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full border dark:border-slate-700">
                 {renderSubjectIcon(currentQuestion.subject)}
-                <span className="font-medium">{currentQuestion.subject}</span>
+                <span className="font-medium text-slate-600 dark:text-slate-300">{currentQuestion.subject}</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-lg font-semibold tabular-nums border border-primary/20">
-              <Clock className="h-5 w-5" />
-              <span>{formatTime(timeLeft)}</span>
+            <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-1.5 rounded-full text-lg font-semibold tabular-nums border dark:border-slate-700">
+              <Clock className="h-5 w-5 text-primary" />
+              <span className="text-slate-700 dark:text-slate-200">{formatTime(timeLeft)}</span>
             </div>
           </div>
           <Progress value={questions.length > 0 ? (currentQuestionIndex + 1) / questions.length * 100 : 0} />
         </div>
 
-        <Card key={currentQuestion.id} className="shadow-lg">
-          <CardHeader>
+        <Card key={currentQuestion.id} className="shadow-xl border-slate-200/80 dark:border-slate-800">
+          <CardHeader className="p-4 md:p-6">
             <CardTitle
-              className="text-xl leading-relaxed"
+              className="text-lg sm:text-xl md:text-2xl leading-relaxed text-slate-800 dark:text-slate-100"
               dangerouslySetInnerHTML={{ __html: currentQuestion.question }}
             />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 md:p-6 pt-0">
             <RadioGroup
               value={userAnswers[currentQuestion.id] || ''}
               onValueChange={(value) => handleAnswerSelect(currentQuestion.id, value)}
-              className="space-y-4"
+              className="space-y-3"
             >
               {Object.entries(currentQuestion.options).map(([key, value]) => (
-                <Label key={key} className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50 has-[input:checked]:bg-primary/10 has-[input:checked]:border-primary transition-all">
+                <Label 
+                    key={key} 
+                    className="flex items-center gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ease-in-out hover:border-primary/50 has-[input:checked]:border-primary has-[input:checked]:bg-primary/5 has-[input:checked]:shadow-md"
+                >
                   <RadioGroupItem value={key.toLowerCase()} id={`${currentQuestion.id}-${key}`} />
                   <span
-                    className="font-sans text-base"
+                    className="font-sans text-sm sm:text-base text-slate-700 dark:text-slate-300"
                     dangerouslySetInnerHTML={{ __html: `${key.toUpperCase()}) ${value}` }}
                   />
                 </Label>
@@ -724,15 +732,15 @@ export default function TestClient() {
         </Card>
 
         <div className="mt-6 flex justify-between">
-          <Button variant="outline" onClick={handlePrev} disabled={currentQuestionIndex === 0}>
+          <Button variant="outline" size="lg" onClick={handlePrev} disabled={currentQuestionIndex === 0}>
             Previous
           </Button>
           {currentQuestionIndex === questions.length - 1 ? (
-            <Button className="bg-accent hover:bg-accent/90" onClick={handleSubmit}>
+            <Button variant="destructive" size="lg" onClick={handleSubmit}>
               Submit Test
             </Button>
           ) : (
-            <Button onClick={handleNext}>
+            <Button onClick={handleNext} size="lg">
               Next Question
             </Button>
           )}
