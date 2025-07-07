@@ -2,7 +2,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { questions as fallbackQuestions, Question } from '@/lib/questions';
+import { type Question } from '@/lib/questions'; // Keep type import
+import { generateTest } from '@/ai/flows/generate-test'; // ADDED: new server function
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -10,30 +11,20 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Award, Clock, BookOpen, Calculator, Cpu, FlaskConical, AlertTriangle, ShieldCheck, Loader2, FileQuestion, ArrowLeft, XCircle, CheckCircle, Lightbulb } from 'lucide-react';
+import { Award, Clock, BookOpen, Calculator, Cpu, FlaskConical, AlertTriangle, ShieldCheck, Loader2, FileQuestion, ArrowLeft, Download, Crown } from 'lucide-react';
 import NextLink from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
 import { saveScore } from '@/ai/flows/save-score';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import Confetti from 'react-confetti';
 
 type TestState = 'not-started' | 'in-progress' | 'finished';
 type ResultView = 'score' | 'review';
-
-const sortQuestionsBySubject = (questions: Question[]): Question[] => {
-  const subjectOrder = ['English', 'Math', 'Physics', 'Computer'];
-  return [...questions].sort((a, b) => {
-    const subjectAIndex = subjectOrder.indexOf(a.subject);
-    const subjectBIndex = subjectOrder.indexOf(b.subject);
-    if (subjectAIndex === subjectBIndex) {
-      return a.id - b.id;
-    }
-    return subjectAIndex - subjectBIndex;
-  });
-};
 
 export default function TestClient() {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -52,39 +43,87 @@ export default function TestClient() {
   const [timeLeft, setTimeLeft] = useState(2 * 60 * 60); // 2 hours in seconds
   const [isNavigatorOpen, setIsNavigatorOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
+
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
   const userAnswersRef = useRef(userAnswers);
   userAnswersRef.current = userAnswers;
   
+  const reviewContentRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    let finalQuestions: Question[];
-    try {
-      const customQuestionsRaw = sessionStorage.getItem('customQuestions');
-      if (customQuestionsRaw) {
-        const customQuestions = JSON.parse(customQuestionsRaw);
-        if (Array.isArray(customQuestions) && customQuestions.length > 0) {
-          finalQuestions = customQuestions;
-        } else {
-          finalQuestions = sortQuestionsBySubject(fallbackQuestions);
-        }
-      } else {
-        finalQuestions = sortQuestionsBySubject(fallbackQuestions);
+    function handleResize() {
+      if (typeof window !== 'undefined') {
+        setWindowSize({
+          width: window.innerWidth,
+          height: window.innerHeight,
+        });
       }
-    } catch (error) {
-      console.error("Failed to load or parse questions, using fallback.", error);
-      finalQuestions = sortQuestionsBySubject(fallbackQuestions);
     }
-    
-    setQuestions(finalQuestions);
-    setLoadingQuestions(false);
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    if (showConfetti) {
+      const timer = setTimeout(() => {
+        setShowConfetti(false);
+      }, 30000); // 30 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [showConfetti]);
+  
+  useEffect(() => {
+    const customQuestionsRaw = sessionStorage.getItem('customQuestions');
+
+    async function loadQuestions() {
+        let questionsFromBank: Question[];
+        if (customQuestionsRaw) {
+            try {
+                const parsedQuestions = JSON.parse(customQuestionsRaw);
+                if (Array.isArray(parsedQuestions) && parsedQuestions.length > 0) {
+                    questionsFromBank = parsedQuestions;
+                    toast({
+                        title: "Custom Test Loaded",
+                        description: `Loaded ${parsedQuestions.length} questions set by the admin.`,
+                    });
+                } else {
+                    // If sessionStorage has invalid data, fetch from server
+                    questionsFromBank = await generateTest();
+                }
+            } catch (e) {
+                console.error("Failed to parse custom questions, fetching from server.", e);
+                questionsFromBank = await generateTest();
+            }
+        } else {
+            // No custom questions, fetch from server
+            questionsFromBank = await generateTest();
+        }
+        setQuestions(questionsFromBank);
+        setLoadingQuestions(false);
+    }
+
+    loadQuestions().catch(err => {
+        console.error("Failed to load questions:", err);
+        setLoadingQuestions(false);
+        toast({
+            variant: "destructive",
+            title: "Error Loading Test",
+            description: "Could not load the test questions. Please try again later.",
+        });
+    });
+  }, [toast]);
 
   const currentQuestion = useMemo(() => questions[currentQuestionIndex], [questions, currentQuestionIndex]);
   
   const unansweredQuestionsCount = useMemo(() => {
+    if (!questions) return 0;
     return questions.length - Object.keys(userAnswers).length;
-  }, [questions.length, userAnswers]);
+  }, [questions, userAnswers]);
 
   const handleSubmit = useCallback(async () => {
     if (questions.length === 0) return;
@@ -104,6 +143,10 @@ export default function TestClient() {
     setTestState('finished');
     setResultView('score');
     
+    if (calculatedScore >= 80) {
+      setShowConfetti(true);
+    }
+
     if(document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     }
@@ -115,10 +158,10 @@ export default function TestClient() {
         score: calculatedScore,
         total: questions.length,
       });
-      if (result && !result.success && result.message !== 'NOT_CONFIGURED') {
+      if (result && !result.success) {
          toast({
             variant: "destructive",
-            title: "Could not save score",
+            title: "Could Not Save Score",
             description: result.message,
         });
       }
@@ -210,6 +253,117 @@ export default function TestClient() {
     }
   };
 
+  const handleDownloadReview = async () => {
+    if (incorrectAnswers.length === 0) {
+        toast({ title: 'No incorrect answers to review.' });
+        return;
+    }
+
+    setIsDownloading(true);
+
+    const pdfContainer = document.createElement('div');
+    pdfContainer.style.position = 'absolute';
+    pdfContainer.style.left = '-9999px';
+    pdfContainer.style.width = '800px';
+    pdfContainer.style.fontFamily = 'Arial, sans-serif';
+    pdfContainer.style.color = 'black';
+
+    const requiredStyles = `
+        <style>
+            body { font-family: Arial, sans-serif; color: black; background-color: white; padding: 20px;}
+            .review-title { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+            .review-title h1 { font-size: 24px; font-weight: bold; margin: 0; }
+            .review-title p { font-size: 16px; margin: 5px 0 0 0; }
+            .question-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; page-break-inside: avoid; }
+            .question-text { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+            .answer-box { padding: 8px; border-radius: 5px; margin-top: 8px; border: 1px solid #ddd; }
+            .user-answer { background-color: #ffebee; }
+            .correct-answer { background-color: #e8f5e9; }
+            .explanation { background-color: #fffde7; margin-top: 10px; }
+            .matrix { display: inline-table; vertical-align: middle; border-left: 2px solid black; border-right: 2px solid black; border-radius: 4px; padding: 0 4px; margin: 0 2px; }
+            .matrix td { padding: 2px 4px; text-align: center; }
+            .overline { text-decoration: overline; }
+            strong, b { font-weight: bold; }
+            u { text-decoration: underline; }
+            sup { vertical-align: super; font-size: smaller; }
+        </style>
+    `;
+
+    let htmlContent = `
+      ${requiredStyles}
+      <div class="review-title">
+        <h1>Test Review</h1>
+        <p>${studentName}'s Incorrect Answers</p>
+      </div>
+    `;
+
+    incorrectAnswers.forEach((q, index) => {
+        const userAnswerKey = userAnswers[q.id]?.toUpperCase() || 'Not Answered';
+        const userAnswerText = q.options && q.options[userAnswerKey] ? `${userAnswerKey}) ${q.options[userAnswerKey]}` : userAnswerKey;
+        const correctAnswerKey = q.answer.toUpperCase();
+        const correctAnswerText = q.options && q.options[correctAnswerKey] ? `${correctAnswerKey}) ${q.options[correctAnswerKey]}` : 'N/A';
+
+        htmlContent += `
+        <div class="question-item">
+          <div class="question-text">Q ${index + 1}: ${q.question}</div>
+          <div class="answer-box user-answer"><strong>Your Answer:</strong> ${userAnswerText}</div>
+          <div class="answer-box correct-answer"><strong>Correct Answer:</strong> ${correctAnswerText}</div>
+          ${q.explanation ? `<div class="answer-box explanation"><strong>Explanation:</strong> ${q.explanation}</div>` : ''}
+        </div>
+      `;
+    });
+
+    pdfContainer.innerHTML = htmlContent;
+    document.body.appendChild(pdfContainer);
+
+    try {
+        const canvas = await html2canvas(pdfContainer, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff'
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        if (!imgData || imgData === 'data:,') {
+            throw new Error('Canvas is empty.');
+        }
+
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfPageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const ratio = imgWidth / pdfWidth;
+        const totalPdfHeight = imgHeight / ratio;
+
+        let position = 0;
+        let heightLeft = totalPdfHeight;
+
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+        heightLeft -= pdfPageHeight;
+
+        while (heightLeft > 0) {
+            position -= pdfPageHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalPdfHeight);
+            heightLeft -= pdfPageHeight;
+        }
+
+        pdf.save('test-review.pdf');
+    } catch (e: any) {
+        console.error('PDF generation error:', e);
+        toast({
+            variant: 'destructive',
+            title: 'PDF Download Failed',
+            description: e.message || 'There was an issue generating the PDF file.',
+        });
+    } finally {
+        document.body.removeChild(pdfContainer);
+        setIsDownloading(false);
+    }
+};
+
+
   const renderSubjectIcon = (subject: string) => {
     switch (subject) {
       case 'Math': return <Calculator className="h-6 w-6 text-primary" />;
@@ -239,7 +393,7 @@ export default function TestClient() {
     );
   }
 
-  if (questions.length === 0) {
+  if (questions.length === 0 && !loadingQuestions) {
       return (
          <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-background p-4">
             <Card className="w-full max-w-lg text-center shadow-2xl">
@@ -248,12 +402,17 @@ export default function TestClient() {
                     <CardTitle className="text-3xl font-headline">No Questions Found</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">Could not load any questions for the test. Please go to the admin panel to upload a question document.</p>
+                    <p className="text-muted-foreground">Could not load any questions for the test. Please go to the admin panel to upload a question document or try again later.</p>
                 </CardContent>
-                <CardFooter>
-                    <NextLink href="/admin/upload" passHref>
+                <CardFooter className="flex-col gap-2">
+                    <NextLink href="/admin/upload" passHref className="w-full">
                       <Button asChild size="lg" variant="outline" className="w-full">
                         <span>Go to Upload Page</span>
+                      </Button>
+                    </NextLink>
+                    <NextLink href="/" passHref className="w-full">
+                      <Button asChild size="lg" className="w-full">
+                        <span>Back to Home</span>
                       </Button>
                     </NextLink>
                 </CardFooter>
@@ -306,77 +465,101 @@ export default function TestClient() {
     if (resultView === 'review') {
       return (
         <div className="container mx-auto py-10">
-          <Card className="w-full max-w-4xl mx-auto shadow-2xl">
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <Button variant="outline" onClick={() => setResultView('score')}>
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Score
-                </Button>
-                <div className="text-center">
-                  <CardTitle className="text-3xl font-headline">Review Your Answers</CardTitle>
-                  <CardDescription>Here are the {incorrectAnswers.length} questions you answered incorrectly.</CardDescription>
-                </div>
-                <div className='w-32'></div> {/* Spacer */}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Accordion type="multiple" className="w-full space-y-4">
-                {incorrectAnswers.map((q, index) => (
-                  <AccordionItem value={`q-${index}`} key={q.id} className="border-b-0">
-                     <AccordionTrigger className="p-4 border rounded-lg hover:bg-muted/50 text-left hover:no-underline [&[data-state=open]]:bg-muted/80">
-                      <span className="mr-4 font-bold">{index + 1}.</span>
-                      <span className="flex-1" dangerouslySetInnerHTML={{ __html: q.question }} />
-                    </AccordionTrigger>
-                    <AccordionContent className="p-4 border border-t-0 rounded-b-lg">
-                       <div className="space-y-4">
-                          <div className="flex items-start gap-3 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
-                              <XCircle className="h-5 w-5 shrink-0 text-destructive mt-0.5" />
-                              <div>
-                                  <p className="font-semibold text-destructive">Aapka Jawab: {userAnswers[q.id]?.toUpperCase() || 'Not Answered'}</p>
-                                  {userAnswers[q.id] && q.options[userAnswers[q.id].toUpperCase()] && <p className="text-destructive/80" dangerouslySetInnerHTML={{ __html: q.options[userAnswers[q.id].toUpperCase()] }} />}
-                              </div>
-                          </div>
-                          <div className="flex items-start gap-3 rounded-md border border-primary/50 bg-primary/10 p-3 text-sm">
-                              <CheckCircle className="h-5 w-5 shrink-0 text-primary mt-0.5" />
-                              <div>
-                                  <p className="font-semibold text-primary">Sahi Jawab: {q.answer.toUpperCase()}</p>
-                                  <p className="text-primary/80" dangerouslySetInnerHTML={{ __html: q.options[q.answer.toUpperCase()] }} />
-                              </div>
-                          </div>
-                          <div className="flex items-start gap-3 rounded-md border bg-muted/50 p-3 text-sm">
-                              <Lightbulb className="h-5 w-5 shrink-0 text-amber-500 mt-0.5" />
-                              <div>
-                                  <h4 className="font-semibold text-foreground">Wazahat (Explanation)</h4>
-                                  <p
-                                    className="text-muted-foreground"
-                                    dangerouslySetInnerHTML={{ __html: q.explanation || 'Wazahat mojood nahi hai.' }}
-                                  />
-                              </div>
-                          </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </CardContent>
-          </Card>
+          <div className="w-full max-w-4xl mx-auto">
+             <div className="flex justify-between items-center mb-6">
+                 <Button variant="outline" onClick={() => setResultView('score')}>
+                     <ArrowLeft className="mr-2 h-4 w-4" />
+                     Back to Score
+                 </Button>
+                 <div className="text-center">
+                     <h2 className="text-3xl font-bold font-headline">Review Your Answers</h2>
+                     <p className="text-lg text-muted-foreground mt-2">
+                         Here are the {incorrectAnswers.length} questions you answered incorrectly.
+                     </p>
+                 </div>
+                 <Button onClick={handleDownloadReview} disabled={isDownloading}>
+                     {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                     Download as PDF
+                 </Button>
+             </div>
+             <div ref={reviewContentRef} className="space-y-6 rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+                 {incorrectAnswers.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">Congratulations! You had no incorrect answers to review.</p>
+                 ) : (
+                    incorrectAnswers.map((q, index) => (
+                    <div key={q.id} className="border-b pb-6 last:border-b-0 last:pb-0">
+                        <div className="mb-4">
+                            <p className="font-bold text-lg mb-2 flex items-center gap-2">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-sm">{index + 1}</span>
+                                <span dangerouslySetInnerHTML={{ __html: q.question }} />
+                            </p>
+                        </div>
+                        
+                        <div className="space-y-3">
+                            <Alert variant="destructive">
+                                <AlertTriangle className="h-4 w-4" />
+                                <AlertTitle>Your Answer: {userAnswers[q.id]?.toUpperCase() || 'Not Answered'}</AlertTitle>
+                                {userAnswers[q.id] && q.options[userAnswers[q.id].toUpperCase()] && (
+                                    <AlertDescription dangerouslySetInnerHTML={{ __html: q.options[userAnswers[q.id].toUpperCase()] }} />
+                                )}
+                            </Alert>
+                            
+                            <Alert className="border-green-500/50 text-green-900 dark:text-green-200 bg-green-50 dark:bg-green-900/20">
+                                <ShieldCheck className="h-4 w-4 text-green-600" />
+                                <AlertTitle>Correct Answer: {q.answer.toUpperCase()}</AlertTitle>
+                                <AlertDescription dangerouslySetInnerHTML={{ __html: q.options[q.answer.toUpperCase()] }} />
+                            </Alert>
+    
+                            {q.explanation && (
+                                <Alert className="border-yellow-500/50 text-yellow-900 dark:text-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
+                                    <FileQuestion className="h-4 w-4 text-yellow-600" />
+                                    <AlertTitle>Explanation</AlertTitle>
+                                    <AlertDescription dangerouslySetInnerHTML={{ __html: q.explanation }} />
+                                </Alert>
+                            )}
+                        </div>
+                    </div>
+                    ))
+                 )}
+             </div>
+           </div>
         </div>
       );
     }
 
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-background p-4">
+        {showConfetti && <Confetti width={windowSize.width} height={windowSize.height} />}
         <Card className="w-full max-w-lg text-center shadow-2xl">
           <CardHeader>
-            <Award className="mx-auto h-16 w-16 text-accent" />
-            <CardTitle className="text-3xl font-headline">Well done, {studentName}!</CardTitle>
-            <CardDescription>Here is your test result.</CardDescription>
+             {score >= 80 ? (
+              <Crown className="mx-auto h-16 w-16 text-yellow-500" />
+            ) : score >= 50 ? (
+              <Award className="mx-auto h-16 w-16 text-primary" />
+            ) : (
+              <AlertTriangle className="mx-auto h-16 w-16 text-destructive" />
+            )}
+            <CardTitle className="text-3xl font-headline">
+              {score >= 80 ? `Congratulations, ${studentName}!` : score >= 50 ? `Well done, ${studentName}!` : `Keep Trying, ${studentName}!`}
+            </CardTitle>
+            <CardDescription>
+              {score >= 80 ? "Aapne bohot umdah kia!" : "Here is your test result."}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
               <p className="text-5xl font-bold text-primary">{score} / {questions.length}</p>
               <p className="text-muted-foreground mt-2">Correct Answers</p>
+              <div className='mt-4'>
+                {score >= 50 ? (
+                  <p className="text-2xl font-bold text-green-600">Passed</p>
+                ) : (
+                  <>
+                    <p className="text-2xl font-bold text-destructive">Fail</p>
+                    <p className="text-muted-foreground">Work hard for next time!</p>
+                  </>
+                )}
+              </div>
             </div>
             
             <Progress value={questions.length > 0 ? (score / questions.length) * 100 : 0} className="h-4" />
@@ -412,6 +595,16 @@ export default function TestClient() {
               </Button>
           </CardFooter>
         </Card>
+      </div>
+    );
+  }
+
+  // This check is important to avoid rendering the test UI before questions are loaded
+  if (!currentQuestion) {
+     return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-4 text-lg">Preparing your test...</p>
       </div>
     );
   }
@@ -501,7 +694,7 @@ export default function TestClient() {
               <span>{formatTime(timeLeft)}</span>
             </div>
           </div>
-          <Progress value={(currentQuestionIndex + 1) / questions.length * 100} />
+          <Progress value={questions.length > 0 ? (currentQuestionIndex + 1) / questions.length * 100 : 0} />
         </div>
 
         <Card key={currentQuestion.id} className="shadow-lg">

@@ -21,7 +21,7 @@ const QuestionSchema = z.object({
     D: z.string(),
   }).describe('The four multiple-choice options, labeled A, B, C, and D.'),
   answer: z.string().length(1).describe('The correct option key (e.g., "A", "B", "C", "D").'),
-  explanation: z.string().optional().describe('A brief, one-sentence explanation for why the correct answer is right.'),
+  explanation: z.string().optional().describe('A brief, one-sentence explanation in Roman Urdu for why the correct answer is right.'),
 });
 
 const ProcessPastedQuestionsInputSchema = z.object({
@@ -30,7 +30,7 @@ const ProcessPastedQuestionsInputSchema = z.object({
 export type ProcessPastedQuestionsInput = z.infer<typeof ProcessPastedQuestionsInputSchema>;
 
 const ProcessPastedQuestionsOutputSchema = z.object({
-  questions: z.array(QuestionSchema).length(100).describe('An array of exactly 100 formatted questions (25 from each subject).'),
+  questions: z.array(QuestionSchema).describe('An array of formatted questions.'),
 });
 export type ProcessPastedQuestionsOutput = z.infer<typeof ProcessPastedQuestionsOutputSchema>;
 
@@ -39,41 +39,39 @@ export async function processPastedQuestions(input: ProcessPastedQuestionsInput)
   return processPastedQuestionsFlow(input);
 }
 
+const processPastedQuestionsPrompt = ai.definePrompt({
+  name: 'processPastedQuestionsPrompt',
+  model: 'googleai/gemini-1.5-pro-latest',
+  input: { schema: z.object({ allQuestions: z.string() }) }, // Simpler input for the prompt itself
+  prompt: `You are an expert AI tasked with meticulously formatting test questions. Your PRIMARY goal is to convert the user's raw text input into structured JSON Lines (JSONL) format. You must process EVERY question provided in the input.
 
-// INTERNAL PROMPT: This prompt focuses only on extraction and formatting for a single subject.
-const processSubjectQuestionsPrompt = ai.definePrompt({
-  name: 'processSubjectQuestionsPrompt',
-  input: {
-    schema: z.object({
-      subject: z.string().describe("The subject to focus on, e.g., 'Math'."),
-      allQuestions: z.string().describe('A single block of raw text containing 100 questions from various subjects.'),
-    }),
-  },
-  output: {
-    schema: z.object({
-      questions: z.array(QuestionSchema).describe('An array of formatted questions for the specified subject.'),
-    }),
-  },
-  prompt: `You are an expert who extracts and formats test questions for a university entrance exam.
-Your task is to process a large text block containing 100 questions, but you must ONLY focus on the questions for the subject: **{{{subject}}}**.
+The user will provide the questions in a specific format, with each question separated by a blank line. Here is an example of a single question's input format:
+SUBJECT: Math
+QUESTION: What is the value of the determinant |2 3; 4 8|?
+A) 4
+B) -4
+C) 28
+D) -28
+ANSWER: A
 
-From the full text provided below, find all questions belonging to the '{{{subject}}}' subject. Then, for each of those questions, perform the following actions:
+**CRITICAL TASK & FORMATTING RULES:**
+1.  **Output Format:** Your entire output MUST be in JSON Lines (JSONL) format. This means each question is a single, valid JSON object on its own line. Do NOT wrap the output in a JSON array (no \`[\` or \`]\`) and do not add commas between lines.
+2.  **Process All:** You MUST process every single question block from the input text. Do not skip any.
+3.  **HTML Formatting for Math/Physics:**
+    *   **Superscripts (Powers):** Convert \`x^2\` to \`x<sup>2</sup>\`.
+    *   **Square Roots:** Convert \`sqrt(x)\` to \`&radic;<span class="overline">x</span>\`.
+    *   **Matrices/Determinants:** Convert patterns like \`|a b; c d|\` or \`[a b; c d]\` into an HTML \`<table>\` with the class "matrix".
+       *   Example: \`|2 3; 4 8|\` becomes \`<table class="matrix"><tbody><tr><td>2</td><td>3</td></tr><tr><td>4</td><td>8</td></tr></tbody></table>\`.
+4.  **HTML Formatting for English:**
+    *   For questions that require filling a blank or replacing a word, add a clear instruction in \`<strong>\` tags at the beginning. Example: \`<strong>Complete the sentence:</strong><br/>...\`
+    *   If the original question has an underlined word, preserve the \`<u>\` tag.
+5.  **Roman Urdu Explanation:** For EACH question, you MUST generate a brief, one-sentence explanation in **Roman Urdu** for why the correct answer is right. The user has NOT provided this; you must create it.
+6.  **No Changes to Content:** Do NOT change the question text, options, or the correct answer provided by the user. Your job is to format it and add the explanation.
 
-1.  **Format Math Equations (CRITICAL, if subject is Math or Physics):**
-    - Use \`<sup>\` for superscripts (e.g., \`x^2\` becomes \`x<sup>2</sup>\`).
-    - Use \`<sub>\` for subscripts (e.g., \`a_23\` becomes \`a<sub>23</sub>\`).
-    - Use HTML entities for operators like \`&minus;\` for minus and \`&plusmn;\` for plus-minus.
-    - **For square roots**, use the \`&radic;\` entity and wrap the expression under the root in a \`<span>\` with an overline class, like this: \`&radic;<span class="overline">x<sup>2</sup> + y<sup>2</sup></span>\`.
-    - **For conjugates** (e.g., z-bar), wrap the character in a \`<span>\` with the same overline class: \`<span class="overline">z</span>\`.
-    - **For matrices**, you MUST format them using an HTML \`<table>\` with the class "matrix". For example, a text matrix like \`[a b; c d]\` or \`[[a, b], [c, d]]\` MUST be converted to the following HTML structure: \`<table class="matrix"><tbody><tr><td>a</td><td>b</td></tr><tr><td>c</td><td>d</td></tr></tbody></table>\`. Always use this table structure for matrices.
-2.  **Add Explanation (in Roman Urdu):** For each question, provide a brief, one-sentence explanation in **Roman Urdu** for why the correct answer is correct. Example: 'Is formula ke mutabiq, c/a product of roots hota hai.' Include this explanation in the 'explanation' field.
-3.  **Structure the Output:** Return the data as a JSON object with a single key "questions". The value should be an array of the question objects you found. Do not include any extra text, introductions, or explanations in your output.
-
-Raw Questions Text:
+Now, process the following raw text and generate formatted questions in JSONL format for every question provided:
 {{{allQuestions}}}
 `,
 });
-
 
 const processPastedQuestionsFlow = ai.defineFlow(
   {
@@ -86,58 +84,55 @@ const processPastedQuestionsFlow = ai.defineFlow(
         throw new Error("No questions were pasted in the text area.");
     }
     
-    const subjects = ['Math', 'Physics', 'English', 'Computer'];
-    const allFormattedQuestions: z.infer<typeof QuestionSchema>[] = [];
+    // Split questions into blocks based on double newlines. This is more robust.
+    const questionBlocks = input.allQuestions.trim().split(/\n\s*\n/);
     
-    console.log("Starting question formatting for all subjects in parallel.");
-
-    const promises = subjects.map(subject => 
-        processSubjectQuestionsPrompt({
-            subject: subject,
-            allQuestions: input.allQuestions,
-        }).then(response => {
-            if (!response.output || !response.output.questions) {
-                 throw new Error(`AI failed to process questions for ${subject}.`);
-            }
-            if (response.output.questions.length !== 25) {
-                throw new Error(`AI failed to generate exactly 25 questions for ${subject}. Found ${response.output?.questions?.length || 0}.`);
-            }
-            console.log(`Successfully processed 25 questions for ${subject}.`);
-            return { subject, questions: response.output.questions };
-        })
-    );
-
-    const results = await Promise.allSettled(promises);
-    
-    const failedSubjects: string[] = [];
-    let detailedError = '';
-    
-    results.forEach((result, index) => {
-        if (result.status === 'fulfilled') {
-            allFormattedQuestions.push(...result.value.questions);
-        } else {
-            console.error(`Error processing subject ${subjects[index]}:`, result.reason);
-            failedSubjects.push(subjects[index]);
-            // Capture the first detailed error message to show to the user.
-            if (!detailedError && result.reason instanceof Error) {
-              detailedError = result.reason.message;
-            }
-        }
-    });
-
-    if (failedSubjects.length > 0) {
-        // If we have a specific error (like the count mismatch), show it. Otherwise, show the generic one.
-        if (detailedError) {
-          throw new Error(detailedError);
-        }
-        throw new Error(`Failed to process questions for the following subjects: ${failedSubjects.join(', ')}. Please check the pasted questions for these subjects and try again.`);
+    const BATCH_SIZE = 50;
+    const batches: string[] = [];
+    for (let i = 0; i < questionBlocks.length; i += BATCH_SIZE) {
+        batches.push(questionBlocks.slice(i, i + BATCH_SIZE).join('\n\n'));
     }
 
-    if (allFormattedQuestions.length !== 100) {
-        throw new Error(`Formatting process resulted in ${allFormattedQuestions.length} questions instead of 100. Please check the input text and try again.`);
+    console.log(`Input split into ${batches.length} batches of approximately ${BATCH_SIZE} questions each.`);
+
+    const allProcessedQuestions: z.infer<typeof QuestionSchema>[] = [];
+    
+    // Process batches sequentially to respect API rate limits.
+    for (let i = 0; i < batches.length; i++) {
+        const batchText = batches[i];
+        const batchNumber = i + 1;
+        
+        console.log(`Processing batch ${batchNumber}...`);
+        const response = await processPastedQuestionsPrompt({ allQuestions: batchText });
+        const rawOutput = response.text;
+
+        if (!rawOutput) {
+            console.warn(`AI returned an empty or null response for batch ${batchNumber}.`);
+            continue; // Skip this batch and move to the next.
+        }
+        
+        const lines = rawOutput.trim().split('\n');
+        let parsedInBatch = 0;
+        
+        for (const line of lines) {
+            if (line.trim() === '') continue;
+            try {
+                const jsonLine = JSON.parse(line);
+                const questionParseResult = QuestionSchema.safeParse(jsonLine);
+                if (questionParseResult.success) {
+                    allProcessedQuestions.push(questionParseResult.data);
+                    parsedInBatch++;
+                } else {
+                    console.warn(`Skipping invalid line from AI in batch ${batchNumber}:`, line, questionParseResult.error.issues);
+                }
+            } catch (e) {
+                console.warn(`Skipping line that is not valid JSON in batch ${batchNumber}:`, line);
+            }
+        }
+        console.log(`Successfully parsed ${parsedInBatch} questions from batch ${batchNumber}.`);
     }
     
-    console.log(`Successfully formatted a total of 100 questions.`);
-    return { questions: allFormattedQuestions };
+    console.log(`Successfully parsed a total of ${allProcessedQuestions.length} questions from all batches.`);
+    return { questions: allProcessedQuestions };
   }
 );

@@ -2,29 +2,55 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, Upload, Eye, EyeOff, RotateCw } from "lucide-react";
+import { Bot, Upload, Eye, EyeOff, RotateCw, Loader2 } from "lucide-react";
 import NextLink from 'next/link';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { getAdmitCardVisibility, setAdmitCardVisibility } from "@/ai/flows/admit-card-visibility";
 
 export default function AdminDashboardPage() {
   const { toast } = useToast();
   const [isAdmitCardVisible, setIsAdmitCardVisible] = useState(true);
-  const [isClient, setIsClient] = useState(false);
+  const [isLoadingVisibility, setIsLoadingVisibility] = useState(true);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    setIsClient(true);
-    const storedValue = localStorage.getItem('admitCardVisible');
-    setIsAdmitCardVisible(storedValue !== 'false');
-  }, []);
+    async function fetchVisibility() {
+        setIsLoadingVisibility(true);
+        try {
+            const visible = await getAdmitCardVisibility();
+            setIsAdmitCardVisible(visible);
+        } catch (e) {
+            console.error("Failed to fetch visibility:", e);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not fetch visibility status.",
+            });
+        } finally {
+            setIsLoadingVisibility(false);
+        }
+    }
+    fetchVisibility();
+  }, [toast]);
 
   const toggleAdmitCardVisibility = () => {
-    const newValue = !isAdmitCardVisible;
-    localStorage.setItem('admitCardVisible', String(newValue));
-    setIsAdmitCardVisible(newValue);
-    toast({
-        title: `Admit Card Page ${newValue ? 'Enabled' : 'Disabled'}`,
-        description: `The admit card feature is now ${newValue ? 'visible' : 'hidden'} to users.`,
+    startTransition(async () => {
+        const newValue = !isAdmitCardVisible;
+        const result = await setAdmitCardVisibility(newValue);
+        if (result.success) {
+            setIsAdmitCardVisible(newValue);
+            toast({
+                title: `Admit Card Page ${newValue ? 'Enabled' : 'Disabled'}`,
+                description: `The admit card feature is now ${newValue ? 'visible' : 'hidden'} to all users globally.`,
+            });
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Update Failed",
+                description: result.message || "Could not update visibility setting.",
+            });
+        }
     });
   };
   
@@ -96,23 +122,25 @@ export default function AdminDashboardPage() {
           <CardHeader>
             <div className="flex items-center gap-4">
               <div className="bg-red-500/10 p-3 rounded-full">
-                {isAdmitCardVisible ? <Eye className="h-8 w-8 text-red-500" /> : <EyeOff className="h-8 w-8 text-red-500" />}
+                {isLoadingVisibility ? <Loader2 className="h-8 w-8 animate-spin text-red-500" /> : (isAdmitCardVisible ? <Eye className="h-8 w-8 text-red-500" /> : <EyeOff className="h-8 w-8 text-red-500" />)}
               </div>
               <div>
                 <CardTitle>Admit Card Visibility</CardTitle>
-                <CardDescription>Show or hide the admit card page.</CardDescription>
+                <CardDescription>Show or hide the admit card page for all users.</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-             <p className="text-muted-foreground mb-4">
-                The admit card page is currently <span className="font-bold">{isAdmitCardVisible ? 'VISIBLE' : 'HIDDEN'}</span>.
-            </p>
-            {isClient && (
-                 <Button variant={isAdmitCardVisible ? "destructive" : "default"} className="w-full" onClick={toggleAdmitCardVisibility}>
-                    {isAdmitCardVisible ? 'Hide Admit Card Page' : 'Show Admit Card Page'}
-                </Button>
-            )}
+             {isLoadingVisibility ? (
+                <p className="text-muted-foreground mb-4">Loading visibility status...</p>
+             ) : (
+                <p className="text-muted-foreground mb-4">
+                    The admit card page is currently <span className="font-bold">{isAdmitCardVisible ? 'VISIBLE' : 'HIDDEN'}</span> globally.
+                </p>
+             )}
+            <Button variant={isAdmitCardVisible ? "destructive" : "default"} className="w-full" onClick={toggleAdmitCardVisibility} disabled={isPending || isLoadingVisibility}>
+              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (isAdmitCardVisible ? 'Hide Admit Card Page' : 'Show Admit Card Page')}
+            </Button>
           </CardContent>
         </Card>
         
@@ -132,11 +160,9 @@ export default function AdminDashboardPage() {
              <p className="text-muted-foreground mb-4">
                 Clear any uploaded or generated questions and revert to the original test with explanations.
             </p>
-            {isClient && (
-                <Button variant="destructive" className="w-full" onClick={resetQuestions}>
-                    Reset to Default Questions
-                </Button>
-            )}
+             <Button variant="destructive" className="w-full" onClick={resetQuestions}>
+                Reset to Default Questions
+            </Button>
           </CardContent>
         </Card>
 

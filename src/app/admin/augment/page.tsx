@@ -9,7 +9,7 @@ import type { Question } from '@/lib/questions';
 import { useToast } from '@/hooks/use-toast';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -47,8 +47,12 @@ export default function AugmenterPage() {
         const input: ProcessPastedQuestionsInput = { allQuestions: values.allQuestions };
         const response = await processPastedQuestions(input);
 
-        if (!response.questions || response.questions.length < 100) {
-          throw new Error(`AI processed only ${response.questions?.length || 0} questions instead of 100. Please ensure you have pasted exactly 100 questions (25 from each subject) and try again.`);
+        if (!response.questions || response.questions.length === 0) {
+          throw new Error("AI failed to process any questions. Please check the pasted text and its format, then try again.");
+        }
+
+        if (response.questions.length < 100) {
+          throw new Error(`Formatting Failed: The AI processed only ${response.questions.length} questions instead of 100. This can happen if the AI fails to extract all questions from the pasted text. Please verify the input text has enough questions and try again.`);
         }
 
         const questionsWithIds: Question[] = response.questions.map((q, index) => ({
@@ -156,11 +160,18 @@ export default function AugmenterPage() {
                               <FormLabel>All Questions (Paste 100)</FormLabel>
                               <FormControl>
                                   <Textarea 
-                                    placeholder="Paste all 100 questions here. The AI will handle sorting them by subject. Include options and the answer for each." 
+                                    placeholder="Paste all 100 questions here, following the example format below." 
                                     className="min-h-[400px]" 
                                     {...field} 
                                   />
                               </FormControl>
+                              <FormDescription>
+                                Please use a clear format for each question, for example:
+                                <pre className="mt-2 p-2 bg-muted rounded-md text-xs text-muted-foreground overflow-x-auto">
+                                    {`SUBJECT: Math\nQUESTION: What is 2+2?\nA) 3\nB) 4\nC) 5\nD) 6\nANSWER: B`}
+                                </pre>
+                                Separate each question with a blank line.
+                              </FormDescription>
                               <FormMessage />
                           </FormItem>
                       )} />

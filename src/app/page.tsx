@@ -1,20 +1,11 @@
-'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, UserCog, GraduationCap, ClipboardEdit } from 'lucide-react';
 import NextLink from 'next/link';
-import { useState, useEffect } from 'react';
+import { getAdmitCardVisibility } from '@/ai/flows/admit-card-visibility';
 
-export default function Home() {
-  const [isClient, setIsClient] = useState(false);
-  const [admitCardVisible, setAdmitCardVisible] = useState(false);
-
-  useEffect(() => {
-    const storedValue = localStorage.getItem('admitCardVisible');
-    setAdmitCardVisible(storedValue !== 'false');
-    setIsClient(true);
-  }, []);
+export default async function Home() {
+  const admitCardVisible = await getAdmitCardVisibility();
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background flex flex-col items-center justify-center p-4">
@@ -53,7 +44,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        {isClient && admitCardVisible && (
+        {admitCardVisible && (
           <Card className="hover:shadow-lg transition-shadow w-full md:w-auto md:flex-1 md:max-w-md">
             <CardHeader>
                 <div className="flex items-center gap-4">
