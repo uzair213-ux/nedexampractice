@@ -368,10 +368,10 @@ export default function TestClient() {
 
   const renderSubjectIcon = (subject: string) => {
     switch (subject) {
-      case 'Math': return <Calculator className="h-6 w-6 text-primary" />;
-      case 'Physics': return <FlaskConical className="h-6 w-6 text-primary" />;
-      case 'English': return <BookOpen className="h-6 w-6 text-primary" />;
-      case 'Computer': return <Cpu className="h-6 w-6 text-primary" />;
+      case 'Math': return <Calculator className="h-5 w-5" />;
+      case 'Physics': return <FlaskConical className="h-5 w-5" />;
+      case 'English': return <BookOpen className="h-5 w-5" />;
+      case 'Computer': return <Cpu className="h-5 w-5" />;
       default: return null;
     }
   };
@@ -498,24 +498,24 @@ export default function TestClient() {
                         </div>
                         
                         <div className="space-y-3">
-                            <Alert variant="destructive">
-                                <AlertTriangle className="h-4 w-4" />
-                                <AlertTitle>Your Answer: {userAnswers[q.id]?.toUpperCase() || 'Not Answered'}</AlertTitle>
+                            <Alert className="border-red-500/50 text-red-900 dark:text-red-200 bg-red-50 dark:bg-red-900/20">
+                                <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-500" />
+                                <AlertTitle className="text-red-600 dark:text-red-300">Your Answer: {userAnswers[q.id]?.toUpperCase() || 'Not Answered'}</AlertTitle>
                                 {userAnswers[q.id] && q.options[userAnswers[q.id].toUpperCase()] && (
                                     <AlertDescription dangerouslySetInnerHTML={{ __html: q.options[userAnswers[q.id].toUpperCase()] }} />
                                 )}
                             </Alert>
                             
                             <Alert className="border-green-500/50 text-green-900 dark:text-green-200 bg-green-50 dark:bg-green-900/20">
-                                <ShieldCheck className="h-4 w-4 text-green-600" />
-                                <AlertTitle>Correct Answer: {q.answer.toUpperCase()}</AlertTitle>
+                                <ShieldCheck className="h-4 w-4 text-green-600 dark:text-green-500" />
+                                <AlertTitle className="text-green-600 dark:text-green-300">Correct Answer: {q.answer.toUpperCase()}</AlertTitle>
                                 <AlertDescription dangerouslySetInnerHTML={{ __html: q.options[q.answer.toUpperCase()] }} />
                             </Alert>
     
                             {q.explanation && (
                                 <Alert className="border-yellow-500/50 text-yellow-900 dark:text-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
-                                    <FileQuestion className="h-4 w-4 text-yellow-600" />
-                                    <AlertTitle>Explanation</AlertTitle>
+                                    <FileQuestion className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
+                                    <AlertTitle className="text-yellow-600 dark:text-yellow-300">Explanation</AlertTitle>
                                     <AlertDescription dangerouslySetInnerHTML={{ __html: q.explanation }} />
                                 </Alert>
                             )}
@@ -612,7 +612,11 @@ export default function TestClient() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-2 sm:p-4 md:p-6" onContextMenu={(e) => e.preventDefault()} style={{ userSelect: 'none' }}>
+    <div className="min-h-screen bg-background relative overflow-hidden" onContextMenu={(e) => e.preventDefault()} style={{ userSelect: 'none' }}>
+      <div className="absolute top-0 left-0 -z-10 h-full w-full bg-background">
+        <div className="absolute bottom-0 left-[-20%] right-0 top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.15),rgba(255,255,255,0))]"></div>
+        <div className="absolute bottom-0 right-[-20%] top-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(255,0,182,.15),rgba(255,255,255,0))]"></div>
+      </div>
       <AlertDialog open={isCheating}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -630,17 +634,17 @@ export default function TestClient() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-6 space-y-4">
+      <div className="max-w-4xl mx-auto p-2 sm:p-4 md:p-6">
+        <div className="mb-4 sm:mb-6 space-y-4">
           <div className="flex justify-between items-center flex-wrap gap-4">
-            <h2 className="text-xl sm:text-2xl font-bold font-heading text-slate-700 dark:text-slate-200">
+            <h2 className="text-xl sm:text-2xl font-bold font-heading">
               Question {currentQuestionIndex + 1}{' '}
-              <span className="font-normal text-slate-400">/ {questions.length}</span>
+              <span className="font-normal text-muted-foreground">/ {questions.length}</span>
             </h2>
             <div className="flex items-center gap-x-2 sm:gap-x-4">
               <Dialog open={isNavigatorOpen} onOpenChange={setIsNavigatorOpen}>
                   <DialogTrigger asChild>
-                      <Button variant="outline" className="relative bg-white dark:bg-slate-800">
+                      <Button variant="outline" className="relative">
                           <FileQuestion className="mr-2 h-4 w-4" />
                           <span>Question List</span>
                           {unansweredQuestionsCount > 0 && (
@@ -666,7 +670,7 @@ export default function TestClient() {
                                           variant={isCurrent ? 'secondary' : 'ghost'}
                                           className={cn(
                                               'justify-start w-full text-left h-auto py-2 px-3 whitespace-normal',
-                                               isAnswered && !isCurrent && 'bg-green-100 dark:bg-green-900/50 hover:bg-green-200 dark:hover:bg-green-900'
+                                               isAnswered && !isCurrent && 'bg-green-100 dark:bg-green-800/30 hover:bg-green-200 dark:hover:bg-green-800/50 text-green-900 dark:text-green-200'
                                           )}
                                           onClick={() => {
                                               setCurrentQuestionIndex(index);
@@ -688,24 +692,24 @@ export default function TestClient() {
                   </DialogContent>
               </Dialog>
 
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full border dark:border-slate-700">
+              <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm px-3 py-1.5 rounded-full border">
                 {renderSubjectIcon(currentQuestion.subject)}
-                <span className="font-medium text-slate-600 dark:text-slate-300">{currentQuestion.subject}</span>
+                <span className="font-medium text-sm">{currentQuestion.subject}</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-1.5 rounded-full text-lg font-semibold tabular-nums border dark:border-slate-700">
+            <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm px-4 py-1.5 rounded-full text-lg font-semibold tabular-nums border">
               <Clock className="h-5 w-5 text-primary" />
-              <span className="text-slate-700 dark:text-slate-200">{formatTime(timeLeft)}</span>
+              <span>{formatTime(timeLeft)}</span>
             </div>
           </div>
           <Progress value={questions.length > 0 ? (currentQuestionIndex + 1) / questions.length * 100 : 0} />
         </div>
 
-        <Card key={currentQuestion.id} className="shadow-xl border-slate-200/80 dark:border-slate-800">
+        <Card key={currentQuestion.id} className="shadow-lg bg-card/80 backdrop-blur-sm">
           <CardHeader className="p-4 md:p-6">
             <CardTitle
-              className="text-lg sm:text-xl md:text-2xl leading-relaxed text-slate-800 dark:text-slate-100"
+              className="text-lg sm:text-xl md:text-2xl leading-relaxed text-card-foreground"
               dangerouslySetInnerHTML={{ __html: currentQuestion.question }}
             />
           </CardHeader>
@@ -718,11 +722,11 @@ export default function TestClient() {
               {Object.entries(currentQuestion.options).map(([key, value]) => (
                 <Label 
                     key={key} 
-                    className="flex items-center gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ease-in-out hover:border-primary/50 has-[input:checked]:border-primary has-[input:checked]:bg-primary/5 has-[input:checked]:shadow-md"
+                    className="flex items-start sm:items-center gap-4 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ease-in-out bg-background/80 hover:border-blue-500/50 has-[input:checked]:border-blue-500 has-[input:checked]:bg-blue-500/10 has-[input:checked]:shadow-md"
                 >
-                  <RadioGroupItem value={key.toLowerCase()} id={`${currentQuestion.id}-${key}`} />
+                  <RadioGroupItem value={key.toLowerCase()} id={`${currentQuestion.id}-${key}`} className="mt-1 sm:mt-0" />
                   <span
-                    className="font-sans text-sm sm:text-base text-slate-700 dark:text-slate-300"
+                    className="font-sans text-sm sm:text-base text-foreground"
                     dangerouslySetInnerHTML={{ __html: `${key.toUpperCase()}) ${value}` }}
                   />
                 </Label>
